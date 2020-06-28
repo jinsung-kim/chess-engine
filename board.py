@@ -14,7 +14,7 @@ class Board():
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
-
+        self.last = None
         self.move_log = []
 
 
