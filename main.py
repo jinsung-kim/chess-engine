@@ -74,7 +74,8 @@ def draw_board():
 
 def highlight_board(x, y):
     # Current piece clicked on -> Assuming it is a valid piece
-    pygame.draw.rect(game_display, YELLOW, pygame.Rect(truncate(x / 50, 0) * 50, truncate(y / 50, 0) * 50, SQUARE_SIDE, SQUARE_SIDE))
+    pygame.draw.rect(game_display, YELLOW, pygame.Rect(int(truncate(x / 50, 0) * 50), \
+                    int(truncate(y / 50, 0) * 50), SQUARE_SIDE, SQUARE_SIDE))
 
     # Places that current piece can go
     
