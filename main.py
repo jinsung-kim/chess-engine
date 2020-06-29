@@ -289,10 +289,12 @@ def main():
             if event.type == pygame.QUIT:
                 game_exit = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # left mouse button
+                if event.button == 1:  # Left mouse button
                     mouse_cor = pygame.mouse.get_pos()
                     mouse_x_cor = mouse_cor[0]
                     mouse_y_cor = mouse_cor[1]
+                    game_board.make_move(mouse_x_cor, mouse_y_cor)
+                    game_board.last = (mouse_x_cor, mouse_y_cor)
 
         draw_board()
         highlight_board(mouse_x_cor, mouse_y_cor)
