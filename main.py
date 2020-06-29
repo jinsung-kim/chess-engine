@@ -58,12 +58,6 @@ image_dict = {
 def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
 
-def setup_game():
-    pygame.init()
-    pygame.display.set_caption('Chess')
-    clock = pygame.time.Clock()
-
-
 def draw_board():
     game_display.fill(BROWN)
     for i in range(4):
@@ -73,12 +67,37 @@ def draw_board():
 
 
 def highlight_board(x, y):
-    # Current piece clicked on -> Assuming it is a valid piece
-    pygame.draw.rect(game_display, YELLOW, pygame.Rect(int(truncate(x / 50, 0) * 50), \
-                    int(truncate(y / 50, 0) * 50), SQUARE_SIDE, SQUARE_SIDE))
+    # Position on board
+    pos_x = int(truncate(x / 50, 0))
+    pos_y = int(truncate(y / 50, 0))
+    # Current piece clicked on
+    pygame.draw.rect(game_display, YELLOW, pygame.Rect(pos_x * 50, pos_y * 50, SQUARE_SIDE, SQUARE_SIDE))
 
     # Places that current piece can go
-    
+    # If the piece is empty or belongs to the black side, do nothing
+    possible_combos = []
+    piece = game_board.board[pos_y][pos_x]
+    print(piece)
+    if (piece == "wN"): # Knight
+        print("Knight selected")
+        possible_combos = [(pos_x - 2, pos_y + 1), (pos_x - 2, pos_y - 1), \
+                            (pos_x - 1, pos_y - 2), (pos_x + 1, pos_y - 2), \
+                            (pos_x + 2, pos_y - 1), (pos_x + 2, pos_y + 1), \
+                            (pos_x + 1, pos_y + 2), (pos_x - 1, pos_y + 2)]
+
+        for i in range(len(possible_combos)):
+            curr_x = possible_combos[i][0]
+            curr_y = possible_combos[i][1]
+            if (curr_x >= 0 and curr_x <= 7 and curr_y >= 0 and curr_y <= 7):
+                if ("w" not in game_board.board[curr_y][curr_x]):
+                    print(game_board.board[curr_y][curr_x])
+                    pygame.draw.rect(game_display, YELLOW, \
+                    pygame.Rect(curr_x * 50, curr_y * 50, \
+                    SQUARE_SIDE, SQUARE_SIDE))
+    if (piece == "wR"): # Rook
+        pass
+
+        
 
 def draw_pieces():
     for i in range(8):
@@ -87,7 +106,9 @@ def draw_pieces():
                 game_display.blit(image_dict[game_board.board[j][i]], ((i * 50) - 5, (j * 50) - 5))
 
 def main():
-    setup_game()
+    pygame.init()
+    pygame.display.set_caption('Chess')
+    clock = pygame.time.Clock()
     game_exit = False
     mouse_x_cor = -1
     mouse_y_cor = -1
@@ -100,15 +121,11 @@ def main():
                     mouse_cor = pygame.mouse.get_pos()
                     mouse_x_cor = mouse_cor[0]
                     mouse_y_cor = mouse_cor[1]
-                    # print(mouse_x_cor)
-                    # print(mouse_y_cor)
 
         draw_board()
         highlight_board(mouse_x_cor, mouse_y_cor)
         draw_pieces()
         pygame.display.update()
-        # pygame.display.flip()
-        # clock.tick(1)
 
 main()
 pygame.quit()
