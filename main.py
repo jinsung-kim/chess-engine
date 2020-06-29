@@ -60,7 +60,18 @@ def truncate(f, n):
 
 
 def draw_square(pos_x, pos_y, color):
-    pygame.draw.rect(game_display, color, pygame.Rect(pos_x, pos_y, SQUARE_SIDE, SQUARE_SIDE))
+    if (color == BLACK): # If the board piece is black, king pos
+        x = int(pos_x / 50)
+        y = int(pos_y / 50)
+        if ("b" in game_board.board[y][x]):
+            pygame.draw.rect(game_display, BLUE_LIGHT, \
+            pygame.Rect(pos_x, pos_y, SQUARE_SIDE, SQUARE_SIDE))
+        elif (game_board.board[y][x] == "--"):
+            pygame.draw.rect(game_display, YELLOW, \
+            pygame.Rect(pos_x, pos_y, SQUARE_SIDE, SQUARE_SIDE))
+    else:
+        pygame.draw.rect(game_display, color, \
+        pygame.Rect(pos_x, pos_y, SQUARE_SIDE, SQUARE_SIDE))
 
 
 def draw_board():
@@ -87,22 +98,14 @@ def highlight_board(x, y):
     elif (piece == "wR"): # Rook (vertical and horizontal)
         highlight_rook(pos_x, pos_y)
     elif (piece == "wB"): # Bishop (diagonal)
-        # i = pos_x - 1
-        # j = pos_y - 1
-        # while (i >= 0 and j >= 0):
-        #     if ("w" in game_board.board[i][j]):
-        #         break
-        #     else:
-        #         draw_square(i * 50, j * 50, YELLOW)
-        #         if ("b" in game_board.board[i][pos_x]):
-        #             break
-        # while (i >= 0 and j <= 7):
-        #     pass
-        # while (i <= 7 and j >= 0):
-        #     pass
-        # while (i <= 7 and j <= 7):
-        #     pass
-        pass
+        highlight_bishop(pos_x, pos_y)
+    elif (piece == "wQ"): # Queen (vertical, horizontal and diagonal)
+        highlight_rook(pos_x, pos_y)
+        highlight_bishop(pos_x, pos_y)
+    elif (piece == "wK"): # King (all directions but one step)
+        highlight_king(pos_x, pos_y)
+    elif (piece == "wP"): # Pawn
+        highlight_pawn(pos_x, pos_y)
 
 
 def highlight_knight(pos_x, pos_y):
@@ -163,6 +166,110 @@ def highlight_rook(pos_x, pos_y):
             else:
                 draw_square(i * 50, pos_y * 50, YELLOW)
 
+
+def highlight_bishop(pos_x, pos_y):
+    i = pos_x - 1
+    j = pos_y - 1
+    while (i >= 0 and j >= 0):
+        if ("w" in game_board.board[j][i]):
+            break
+        else:
+            if ("b" in game_board.board[j][i]):
+                draw_square(i * 50, j * 50, BLUE_LIGHT)
+                break
+            else:
+                draw_square(i * 50, j * 50, YELLOW)
+        i -= 1
+        j -= 1
+    i = pos_x - 1
+    j = pos_y + 1
+    while (i >= 0 and j <= 7):
+        if ("w" in game_board.board[j][i]):
+            break
+        else:
+            if ("b" in game_board.board[j][i]):
+                draw_square(i * 50, j * 50, BLUE_LIGHT)
+                break
+            else:
+                draw_square(i * 50, j * 50, YELLOW)
+        i -= 1
+        j += 1
+    i = pos_x + 1
+    j = pos_y - 1
+    while (i <= 7 and j >= 0):
+        if ("w" in game_board.board[j][i]):
+            break
+        else:
+            if ("b" in game_board.board[j][i]):
+                draw_square(i * 50, j * 50, BLUE_LIGHT)
+                break
+            else:
+                draw_square(i * 50, j * 50, YELLOW)
+        i += 1
+        j -= 1
+    i = pos_x + 1
+    j = pos_y + 1
+    while (i <= 7 and j <= 7):
+        if ("w" in game_board.board[j][i]):
+            break
+        else:
+            if ("b" in game_board.board[j][i]):
+                draw_square(i * 50, j * 50, BLUE_LIGHT)
+                break
+            else:
+                draw_square(i * 50, j * 50, YELLOW)
+        i += 1
+        j += 1
+
+
+def highlight_king(pos_x, pos_y):
+    if (pos_x > 0):
+        if (pos_y < 7):
+            draw_square((pos_x - 1) * 50, (pos_y + 1) * 50, BLACK)
+        draw_square((pos_x - 1) * 50, pos_y * 50, BLACK)
+        if (pos_y > 0):
+            draw_square((pos_x - 1) * 50, (pos_y - 1) * 50, BLACK)
+    if (pos_y > 0):
+        draw_square(pos_x * 50, (pos_y - 1) * 50, BLACK)
+        if (pos_x < 7):
+            draw_square((pos_x + 1) * 50, (pos_y - 1) * 50, BLACK)
+    if (pos_x < 7):
+        draw_square((pos_x + 1) * 50, pos_y * 50, BLACK)
+        if (pos_y < 7):
+            draw_square((pos_x + 1) * 50, (pos_y + 1) * 50, BLACK)
+    if (pos_y < 7):
+        draw_square(pos_x * 50, (pos_y + 1) * 50, BLACK)
+
+
+def highlight_pawn(pos_x, pos_y):
+    if (pos_y == 6):
+        if ("b" not in game_board.board[pos_y - 1][pos_x] and \
+            "w" not in game_board.board[pos_y - 1][pos_x]):
+            draw_square(pos_x * 50, (pos_y - 1) * 50, YELLOW)
+            if ("b" not in game_board.board[pos_y - 2][pos_x] and \
+            "w" not in game_board.board[pos_y - 2][pos_x]):
+                draw_square(pos_x * 50, (pos_y - 2) * 50, YELLOW)
+    else:
+        if ("b" not in game_board.board[pos_y - 1][pos_x] and \
+            "w" not in game_board.board[pos_y - 1][pos_x]):
+            draw_square(pos_x * 50, (pos_y - 1) * 50, YELLOW)
+
+    # Left and right possible attack highlights
+    if (pos_x == 0):
+        if ("w" not in game_board.board[pos_y - 1][pos_x + 1] and \
+            "b" in game_board.board[pos_y - 1][pos_x + 1]):
+            draw_square((pos_x + 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
+    elif (pos_x == 7):
+        if ("w" not in game_board.board[pos_y - 1][pos_x - 1] and \
+            "b" in game_board.board[pos_y - 1][pos_x - 1]):
+            draw_square((pos_x - 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
+    else:
+        if ("w" not in game_board.board[pos_y - 1][pos_x - 1] and \
+            "b" in game_board.board[pos_y - 1][pos_x - 1]):
+            draw_square((pos_x - 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
+        if ("w" not in game_board.board[pos_y - 1][pos_x + 1] and \
+            "b" in game_board.board[pos_y - 1][pos_x + 1]):
+            draw_square((pos_x + 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
 
 def draw_pieces():
     for x in range(8):
