@@ -25,6 +25,8 @@ class Board():
     def make_move(self, x, y):
         pos_x = int(truncate(x / 50, 0))
         pos_y = int(truncate(y / 50, 0))
+        prev_x = -1
+        prev_y = -1
         valid = False
         if (self.last != None):
             prev_x = int(truncate(self.last[0] / 50, 0))
@@ -43,11 +45,12 @@ class Board():
                 valid = self.valid_king_move(prev_x, prev_y, pos_x, pos_y)
 
         if (valid):
-            print('move is valid')
+            self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
+            self.board[prev_y][prev_x] = "--"
 
     def valid_pawn_move(self, p_x, p_y, to_x, to_y):
-        print(p_x, p_y)
-        print(to_x, to_y)
+        if ("w" in self.board[to_y][to_x]): # if there is a white piece there, cannot go
+            return False
         if (p_y == 6): # first move ever for a pawn
             if ((p_y - to_y == 1 or p_y - to_y == 2) and (p_x == to_x)):
                 if ("b" in self.board[to_y][to_x]): # can't go two forward if black is there
@@ -72,7 +75,32 @@ class Board():
         return False
 
     def valid_rook_move(self, r_x, r_y, to_x, to_y):
-        pass
+        if ("w" in self.board[to_y][to_x]): # if there is a white piece there, check if Q or K
+            if (self.board[to_y][to_x] == "wQ"):
+                pass
+            elif (self.board[to_y][to_x] == "wK"):
+                pass
+            else: # not a castling combination
+                return False # if there is something white there
+        if (r_x == to_x): # vertical
+            if (r_y > to_y):
+                for i in range(r_y - 1, to_y, -1):
+                    if (self.board[i][r_x] != "--"):
+                        return False
+            else:
+                for i in range(r_y + 1, to_y):
+                    if (self.board[i][r_x] != "--"):
+                        return False
+        if (r_y == to_y): # horizontal
+            if (r_x > to_x):
+                for i in range(r_x - 1, to_x, -1):
+                    if (self.board[r_y][i] != "--"):
+                        return False
+            else:
+                for i in range(r_x + 1, to_x):
+                    if (self.board[r_y][i] != "--"):
+                        return False
+        return True
 
     def valid_knight_move(self, k_x, k_y, to_x, to_y):
         pass
