@@ -117,7 +117,7 @@ def highlight_knight(pos_x, pos_y):
         if (curr_x >= 0 and curr_x <= 7 and curr_y >= 0 and curr_y <= 7):
             if ("b" in game_board.board[curr_y][curr_x]):
                 draw_square(curr_x * 50, curr_y * 50, BLUE_LIGHT)
-            if ("w" not in game_board.board[curr_y][curr_x]):
+            elif ("w" not in game_board.board[curr_y][curr_x]):
                 draw_square(curr_x * 50, curr_y * 50, YELLOW)
 
 
