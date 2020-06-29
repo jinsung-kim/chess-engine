@@ -103,7 +103,16 @@ class Board():
         return True
 
     def valid_knight_move(self, k_x, k_y, to_x, to_y):
-        pass
+        if ("w" in self.board[to_y][to_x]):
+            return False
+        possible_combos = [(k_x - 2, k_y + 1), (k_x - 2, k_y - 1), \
+                        (k_x - 1, k_y - 2), (k_x + 1, k_y - 2), \
+                        (k_x + 2, k_y - 1), (k_x + 2, k_y + 1), \
+                        (k_x + 1, k_y + 2), (k_x - 1, k_y + 2)]
+        for i in range(len(possible_combos)):
+            if ((possible_combos[i][0]) == to_x and (possible_combos[i][1] == to_y)):
+                return True
+        return False
 
     def valid_bishop_move(self, b_x, b_y, to_x, to_y):
         pass
