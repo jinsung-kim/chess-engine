@@ -14,7 +14,7 @@ class Board():
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "wK", "--", "--", "--"],
             ["--", "--", "--", "wR", "--", "wN", "--", "--"],
-            ["--", "bP", "--", "bK", "--", "--", "--", "wQ"],
+            ["--", "bP", "--", "wB", "--", "--", "--", "wQ"],
             ["--", "--", "wP", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
@@ -115,7 +115,43 @@ class Board():
         return False
 
     def valid_bishop_move(self, b_x, b_y, to_x, to_y):
-        pass
+        if ("w" in self.board[to_y][to_x]): # occupied already
+            return False
+        if (abs(b_x - to_x) != abs(b_y - to_y)): # Not a diagonal move
+            return False
+        if (b_x > to_x and b_y > to_y): # NW
+            i = to_x + 1
+            j = to_y + 1
+            while (i != b_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j += 1
+        elif (b_x > to_x and b_y < to_y): # SW
+            i = to_x + 1
+            j = to_y - 1
+            while (i != b_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j -= 1
+        elif (b_x < to_x and b_y > to_y): # NE
+            i = b_x + 1
+            j = b_y - 1
+            while (i != to_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j -= 1
+        else: # SE
+            i = b_x + 1
+            j = b_y + 1
+            while (i != to_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j += 1
+        return True
 
     def valid_queen_move(self, q_x, q_y, to_x, to_y):
         pass
