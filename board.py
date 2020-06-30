@@ -1,9 +1,18 @@
 import math
 
+labels = {
+    0: "a",
+    1: "b",
+    2: "c",
+    3: "d",
+    4: "e",
+    5: "f",
+    6: "g",
+    7: "h"
+}
 
 def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
-
 
 class Board():
     def __init__(self):
@@ -45,10 +54,11 @@ class Board():
                 valid = self.valid_king_move(prev_x, prev_y, pos_x, pos_y)
 
         if (valid):
+            self.move_log.append(self.board[prev_y][prev_x] + labels[pos_x] + str(8 - pos_y))
             self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
             self.board[prev_y][prev_x] = "--"
 
-    def valid_pawn_move(self, p_x, p_y, to_x, to_y):
+    def valid_pawn_move(self, p_x, p_y, to_x, to_y): # next: consider pawn promotion
         if ("w" in self.board[to_y][to_x]): # if there is a white piece there, cannot go
             return False
         if (p_y == 6): # first move ever for a pawn
@@ -154,9 +164,72 @@ class Board():
         return True
 
     def valid_queen_move(self, q_x, q_y, to_x, to_y):
-        pass
+        if (self.board[to_y][to_x] == "wR"): # if there is a white piece there, check if r
+            pass # castling feature (add later)
+        if ("w" in self.board[to_y][to_x]):
+            return False
+        if (q_x == to_x): # vertical
+            if (q_y > to_y):
+                for i in range(q_y - 1, to_y, -1):
+                    if (self.board[i][q_x] != "--"):
+                        return False
+            else:
+                for i in range(q_y + 1, to_y):
+                    if (self.board[i][q_x] != "--"):
+                        return False
+            return True
+        if (q_y == to_y): # horizontal
+            if (q_x > to_x):
+                for i in range(q_x - 1, to_x, -1):
+                    if (self.board[q_y][i] != "--"):
+                        return False
+            else:
+                for i in range(q_x + 1, to_x):
+                    if (self.board[q_y][i] != "--"):
+                        return False
+            return True
+        if (abs(q_x - to_x) != abs(q_y - to_y)): # Not a diagonal move
+            return False
+        if (q_x > to_x and q_y > to_y): # NW
+            i = to_x + 1
+            j = to_y + 1
+            while (i != q_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j += 1
+        elif (q_x > to_x and q_y < to_y): # SW
+            i = to_x + 1
+            j = to_y - 1
+            while (i != q_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j -= 1
+        elif (q_x < to_x and q_y > to_y): # NE
+            i = q_x + 1
+            j = q_y - 1
+            while (i != to_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j -= 1
+        else: # SE
+            i = q_x + 1
+            j = q_y + 1
+            while (i != to_x):
+                if (self.board[j][i] != "--"):
+                    return False
+                i += 1
+                j += 1
+        return True
 
     def valid_king_move(self, k_x, k_y, to_x, to_y):
-        pass
-
+        if (self.board[to_y][to_x] == "wR"): # if there is a white piece there, check if r
+            pass # castling feature (add later)
+        if ("w" in self.board[to_y][to_x]): # not a castling combination
+            return False
+        if (abs(k_x - to_x) > 1 or abs(k_y - to_y) > 1):
+            return False
+        return True
 
