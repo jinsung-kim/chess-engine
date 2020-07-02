@@ -296,8 +296,7 @@ def main():
                     mouse_y_cor = mouse_cor[1]
                     ai_move = game_board.make_move(mouse_x_cor, mouse_y_cor)
                     game_board.last = (mouse_x_cor, mouse_y_cor)
-        # ai move here
-        if (ai_move):
+        if (ai_move): # ai move here
             game_board.make_ai_move()
             ai_move = False
         draw_board()
