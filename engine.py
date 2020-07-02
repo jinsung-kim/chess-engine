@@ -23,7 +23,7 @@ class Board():
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "wK", "--", "--", "--"],
             ["--", "--", "--", "wR", "--", "wN", "--", "--"],
-            ["--", "bP", "--", "bR", "--", "--", "--", "wQ"],
+            ["--", "bP", "--", "bB", "--", "--", "--", "wQ"],
             ["--", "--", "wP", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
@@ -37,21 +37,29 @@ class Board():
         prev_x = -1
         prev_y = -1
         valid = False
+        moves = []
         if (self.last != None):
             prev_x = int(truncate(self.last[0] / 50, 0))
             prev_y = int(truncate(self.last[1] / 50, 0))
             if (self.board[prev_y][prev_x] == "wP"):
-                valid = self.valid_pawn_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_pawn_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wR"):
-                valid = self.valid_rook_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_rook_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wN"):
-                valid = self.valid_knight_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_knight_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wB"):
-                valid = self.valid_bishop_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_bishop_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wQ"):
-                valid = self.valid_queen_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_rook_moves(prev_x, prev_y, moves, "w")
+                self.get_bishop_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wK"):
-                valid = self.valid_king_move(prev_x, prev_y, pos_x, pos_y)
+                self.get_king_moves(prev_x, prev_y, moves, "w")
+
+        # Check if valid move
+        for i in range(len(moves)):
+            if (pos_x == moves[i][0] and pos_y == moves[i][1]):
+                valid = True
+                break
 
         if (valid):
             self.move_log.append(self.board[prev_y][prev_x] + labels[pos_x] + str(8 - pos_y))
@@ -70,9 +78,7 @@ class Board():
             for j in range(8):
                 if (color in self.board[j][i]):
                     if ("P" in self.board[j][i]):
-                        # testing purposes
-                        # self.get_pawn_moves(i, j, moves, color)
-                        pass
+                        self.get_pawn_moves(i, j, moves, color)
                     elif ("R" in self.board[j][i]):
                         self.get_rook_moves(i, j, moves, color)
                     elif ("N" in self.board[j][i]):
@@ -80,7 +86,8 @@ class Board():
                     elif ("B" in self.board[j][i]):
                         self.get_bishop_moves(i, j, moves, color)
                     elif ("Q" in self.board[j][i]):
-                        self.get_queen_moves(i, j, moves, color)
+                        self.get_bishop_moves(i, j, moves, color)
+                        self.get_rook_moves(i, j, moves, color)
                     elif ("K" in self.board[j][i]):
                         self.get_king_moves(i, j, moves, color)
         return moves
@@ -166,7 +173,6 @@ class Board():
             op = "b"
         # horizontal moves
         for i in range(x - 1, -1, -1):
-            print(self.board[y][i])
             if (self.board[y][i] == "--"):
                 moves.append((i, y))
             elif (op in self.board[y][i]):
@@ -175,7 +181,6 @@ class Board():
             else:
                 break
         for i in range(x + 1, 8):
-            print(self.board[y][i])
             if (self.board[y][i] == "--"):
                 moves.append((i, y))
             elif (op in self.board[y][i]):
@@ -185,7 +190,6 @@ class Board():
                 break
         # vertical moves
         for i in range(y - 1, -1, -1):
-            print(self.board[i][x])
             if (self.board[i][x] == "--"):
                 moves.append((x, i))
             elif (op in self.board[i][x]):
@@ -194,7 +198,6 @@ class Board():
             else:
                 break
         for i in range(y + 1, 8):
-            print(self.board[i][x])
             if (self.board[i][x] == "--"):
                 moves.append((x, i))
             elif (op in self.board[i][x]):
@@ -234,7 +237,17 @@ class Board():
         return True
 
     def get_knight_moves(self, x, y, moves, color):
-        pass
+        possible_combos = [(x - 2, y + 1), (x - 2, y - 1), \
+                        (x - 1, y - 2), (x + 1, y - 2), \
+                        (x + 2, y - 1), (x + 2, y + 1), \
+                        (x + 1, y + 2), (x - 1, y + 2)]
+        for i in range(len(possible_combos)):
+            n_x = possible_combos[i][0]
+            n_y = possible_combos[i][1]
+            if (n_x >= 0 and n_x <= 7 and n_y >= 0 and n_y <= 7):
+                if (color not in self.board[n_y][n_x]):
+                    moves.append((n_x, n_y))
+
 
     def valid_knight_move(self, k_x, k_y, to_x, to_y):
         if ("w" in self.board[to_y][to_x]):
@@ -249,7 +262,71 @@ class Board():
         return False
 
     def get_bishop_moves(self, x, y, moves, color):
-        pass
+        if (color == "b"): # gets opposite color
+            op = "w"
+        else:
+            op = "b"
+        # SE
+        i = x + 1
+        j = y + 1
+        while (i <= 7):
+            if (j > 7):
+                break
+            if (self.board[j][i] == "--"):
+                moves.append((i, j))
+            elif (op in self.board[j][i]):
+                moves.append((i, j))
+                break
+            else:
+                break
+            i += 1
+            j += 1
+        # NE
+        i = x + 1
+        j = y - 1
+        while (i <= 7):
+            if (j < 0):
+                break
+            if (self.board[j][i] == "--"):
+                moves.append((i, j))
+            elif (op in self.board[j][i]):
+                moves.append((i, j))
+                break
+            else:
+                break
+            i += 1
+            j -= 1
+        # SW
+        i = x - 1
+        j = y + 1
+        while (i >= 0):
+            if (j > 7):
+                break
+            if (self.board[j][i] == "--"):
+                moves.append((i, j))
+            elif (op in self.board[j][i]):
+                moves.append((i, j))
+                break
+            else:
+                break
+            i -= 1
+            j += 1
+        # NW
+        i = x - 1
+        j = y - 1
+        while (i >= 0):
+            if (j < 0):
+                break
+            if (self.board[j][i] == "--"):
+                moves.append((i, j))
+            elif (op in self.board[j][i]):
+                moves.append((i, j))
+                break
+            else:
+                break
+            i -= 1
+            j -= 1
+        
 
     def valid_bishop_move(self, b_x, b_y, to_x, to_y):
         if ("w" in self.board[to_y][to_x]): # occupied already
@@ -290,9 +367,6 @@ class Board():
                 j += 1
         return True
 
-    def get_queen_moves(self, x, y, moves, color):
-        pass
-
     def valid_queen_move(self, q_x, q_y, to_x, to_y):
         if (self.board[to_y][to_x] == "wR"): # if there is a white piece there, check if r
             pass # castling feature (add later)
@@ -303,7 +377,36 @@ class Board():
         return rook_check or bishop_check
 
     def get_king_moves(self, x, y, moves, color):
-        pass
+        if (color == "b"):
+            op = "w"
+        else:
+            op = "b"
+        if (x > 0):
+            if (op in self.board[y][x - 1] or self.board[y][x - 1] == "--"):
+                moves.append((x - 1, y))
+            if (y > 0):
+                if (op in self.board[y - 1][x - 1] or self.board[y - 1][x - 1] == "--"):
+                    moves.append((x - 1, y - 1))
+            if (y < 7):
+                if (op in self.board[y + 1][x - 1] or self.board[y + 1][x - 1] == "--"):
+                    moves.append((x - 1, y + 1))
+        if (y > 0):
+            if (op in self.board[y - 1][x] or self.board[y - 1][x] == "--"):
+                moves.append((x, y - 1))
+            if (x < 7):
+                if (op in self.board[y - 1][x + 1] or self.board[y - 1][x + 1] == "--"):
+                    moves.append((x + 1, y - 1))
+        if (x < 7):
+            if (op in self.board[y][x + 1] or self.board[y][x + 1] == "--"):
+                moves.append((x + 1, y))
+            if (y < 7):
+                if (op in self.board[y + 1][x + 1] or self.board[y + 1][x + 1] == "--"):
+                    moves.append((x + 1, y + 1))
+        if (y < 7):
+            if (op in self.board[y + 1][x] or self.board[y + 1][x] == "--"):
+                moves.append((x, y + 1))
+            
+
 
     def valid_king_move(self, k_x, k_y, to_x, to_y):
         # Make sure the king is not in check
