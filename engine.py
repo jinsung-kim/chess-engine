@@ -140,32 +140,6 @@ class Board():
                     if ("b" in self.board[y - 1][x - 1]):
                         moves.append((x - 1, y - 1))
 
-    def valid_pawn_move(self, p_x, p_y, to_x, to_y): # next: consider pawn promotion
-        if ("w" in self.board[to_y][to_x]): # if there is a white piece there, cannot go
-            return False
-        if (p_y == 6): # first move ever for a pawn
-            if ((p_y - to_y == 1 or p_y - to_y == 2) and (p_x == to_x)):
-                if ("b" in self.board[to_y][to_x]): # can't go two forward if black is there
-                    return False
-                else: # if it isn't, it's a valid move
-                    return True
-            return False
-        else:
-            if ((p_y - to_y == 1) and (p_x == to_x)): # move forward one
-                if ("b" in self.board[to_y][to_x]):
-                    return False
-                else:
-                    return True
-            else: # diagonal attack
-                if ((p_y - to_y == 1) and abs(p_x - to_x) == 1):
-                    if ("b" in self.board[to_y][to_x]): # diagonal attack valid
-                        return True
-                    else: # diagonal attack is not valid
-                        return False
-                else:
-                    return False
-        return False
-
     def get_rook_moves(self, x, y, moves, color):
         if (color == "b"): # gets opposite color
             op = "w"
@@ -206,36 +180,6 @@ class Board():
             else:
                 break
 
-    def valid_rook_move(self, r_x, r_y, to_x, to_y):
-        if ("w" in self.board[to_y][to_x]): # if there is a white piece there, check if Q or K
-            if (self.board[to_y][to_x] == "wQ"):
-                pass
-            elif (self.board[to_y][to_x] == "wK"):
-                pass
-            else: # not a castling combination
-                return False # if there is something white there
-        if ((r_x != to_x) and (r_y != to_y)): # diagonal move
-            return False
-        if (r_x == to_x): # vertical
-            if (r_y > to_y):
-                for i in range(r_y - 1, to_y, -1):
-                    if (self.board[i][r_x] != "--"):
-                        return False
-            else:
-                for i in range(r_y + 1, to_y):
-                    if (self.board[i][r_x] != "--"):
-                        return False
-        if (r_y == to_y): # horizontal
-            if (r_x > to_x):
-                for i in range(r_x - 1, to_x, -1):
-                    if (self.board[r_y][i] != "--"):
-                        return False
-            else:
-                for i in range(r_x + 1, to_x):
-                    if (self.board[r_y][i] != "--"):
-                        return False
-        return True
-
     def get_knight_moves(self, x, y, moves, color):
         possible_combos = [(x - 2, y + 1), (x - 2, y - 1), \
                         (x - 1, y - 2), (x + 1, y - 2), \
@@ -247,19 +191,6 @@ class Board():
             if (n_x >= 0 and n_x <= 7 and n_y >= 0 and n_y <= 7):
                 if (color not in self.board[n_y][n_x]):
                     moves.append((n_x, n_y))
-
-
-    def valid_knight_move(self, k_x, k_y, to_x, to_y):
-        if ("w" in self.board[to_y][to_x]):
-            return False
-        possible_combos = [(k_x - 2, k_y + 1), (k_x - 2, k_y - 1), \
-                        (k_x - 1, k_y - 2), (k_x + 1, k_y - 2), \
-                        (k_x + 2, k_y - 1), (k_x + 2, k_y + 1), \
-                        (k_x + 1, k_y + 2), (k_x - 1, k_y + 2)]
-        for i in range(len(possible_combos)):
-            if ((possible_combos[i][0]) == to_x and (possible_combos[i][1] == to_y)):
-                return True
-        return False
 
     def get_bishop_moves(self, x, y, moves, color):
         if (color == "b"): # gets opposite color
@@ -326,55 +257,6 @@ class Board():
                 break
             i -= 1
             j -= 1
-        
-
-    def valid_bishop_move(self, b_x, b_y, to_x, to_y):
-        if ("w" in self.board[to_y][to_x]): # occupied already
-            return False
-        if (abs(b_x - to_x) != abs(b_y - to_y)): # Not a diagonal move
-            return False
-        if (b_x > to_x and b_y > to_y): # NW
-            i = to_x + 1
-            j = to_y + 1
-            while (i != b_x):
-                if (self.board[j][i] != "--"):
-                    return False
-                i += 1
-                j += 1
-        elif (b_x > to_x and b_y < to_y): # SW
-            i = to_x + 1
-            j = to_y - 1
-            while (i != b_x):
-                if (self.board[j][i] != "--"):
-                    return False
-                i += 1
-                j -= 1
-        elif (b_x < to_x and b_y > to_y): # NE
-            i = b_x + 1
-            j = b_y - 1
-            while (i != to_x):
-                if (self.board[j][i] != "--"):
-                    return False
-                i += 1
-                j -= 1
-        else: # SE
-            i = b_x + 1
-            j = b_y + 1
-            while (i != to_x):
-                if (self.board[j][i] != "--"):
-                    return False
-                i += 1
-                j += 1
-        return True
-
-    def valid_queen_move(self, q_x, q_y, to_x, to_y):
-        if (self.board[to_y][to_x] == "wR"): # if there is a white piece there, check if r
-            pass # castling feature (add later)
-        if ("w" in self.board[to_y][to_x]):
-            return False
-        rook_check = self.valid_rook_move(q_x, q_y, to_x, to_y)
-        bishop_check = self.valid_bishop_move(q_x, q_y, to_x, to_y)
-        return rook_check or bishop_check
 
     def get_king_moves(self, x, y, moves, color):
         if (color == "b"):
@@ -405,16 +287,3 @@ class Board():
         if (y < 7):
             if (op in self.board[y + 1][x] or self.board[y + 1][x] == "--"):
                 moves.append((x, y + 1))
-            
-
-
-    def valid_king_move(self, k_x, k_y, to_x, to_y):
-        # Make sure the king is not in check
-        if (self.board[to_y][to_x] == "wR"): # if there is a white piece there, check if rook
-            pass # castling feature (add later)
-        if ("w" in self.board[to_y][to_x]): # not a castling combination
-            return False
-        if (abs(k_x - to_x) > 1 or abs(k_y - to_y) > 1):
-            return False
-        return True
-
