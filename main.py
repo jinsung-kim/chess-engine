@@ -1,7 +1,7 @@
 import pygame
 import time
 import math
-from board import Board
+from engine import Board
 
 DISPLAY_HEIGHT = 400
 DISPLAY_WIDTH = 400
@@ -75,7 +75,7 @@ def draw_square(pos_x, pos_y, color):
 
 
 def draw_board():
-    game_display.fill(BROWN)
+    game_display.fill(GRAY_DARK)
     for i in range(4):
         for j in range(4):
             draw_square(i * 100, j * 100, WHITE)
@@ -284,6 +284,7 @@ def main():
     game_exit = False
     mouse_x_cor = -1
     mouse_y_cor = -1
+    ai_move = False
     while not game_exit:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -293,9 +294,12 @@ def main():
                     mouse_cor = pygame.mouse.get_pos()
                     mouse_x_cor = mouse_cor[0]
                     mouse_y_cor = mouse_cor[1]
-                    game_board.make_move(mouse_x_cor, mouse_y_cor)
+                    ai_move = game_board.make_move(mouse_x_cor, mouse_y_cor)
                     game_board.last = (mouse_x_cor, mouse_y_cor)
         # ai move here
+        if (ai_move):
+            game_board.make_ai_move()
+            ai_move = False
         draw_board()
         highlight_board(mouse_x_cor, mouse_y_cor)
         draw_pieces()
