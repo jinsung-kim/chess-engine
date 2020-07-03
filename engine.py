@@ -1,4 +1,5 @@
 import math
+import random
 
 labels = {
     0: "a",
@@ -19,17 +20,22 @@ class Board():
         # The first letter represents the color of the piece 'b' or 'w'
         # The second letter represents the piece
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
-            ["--", "--", "--", "--", "wK", "--", "--", "--"],
-            ["--", "--", "--", "wR", "--", "wN", "--", "--"],
-            ["--", "bP", "--", "bB", "--", "--", "--", "wQ"],
-            ["--", "--", "wP", "--", "--", "--", "--", "--"],
+            # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
+            # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
+            ["--", "--", "--", "--", "bK", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
         self.last = None
         self.move_log = []
+        # Used for checking for check, checkmate, and stalemates
+        self.bK_pos = (4, 0)
+        self.wK_pos = (4, 7)
 
     def make_move(self, x, y):
         pos_x = int(truncate(x / 50, 0))
@@ -62,15 +68,57 @@ class Board():
                 break
 
         if (valid):
-            self.move_log.append(self.board[prev_y][prev_x] + labels[pos_x] + str(8 - pos_y))
-            self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
+            if (self.board[prev_y][prev_x] == "wP" and pos_y == 0): # pawn promotion
+                self.move_log.append("wQ" + labels[pos_x] + str(8 - pos_y))
+                self.board[pos_y][pos_x] = "wQ"
+            else: # not pawn promotion
+                if (self.board[prev_y][prev_x] == "wK"):
+                    self.wK_pos = (pos_x, pos_y)
+                self.move_log.append(self.board[prev_y][prev_x] + labels[pos_x] + str(8 - pos_y))
+                self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
             self.board[prev_y][prev_x] = "--"
             return True
         return False
 
     def make_ai_move(self):
-        moves = self.get_all_moves("b")
-        print(moves)
+        try:
+            moves = self.get_all_moves("b")
+            rand = random.randint(0, len(moves))
+            if (rand == len(moves)):
+                rand = 0
+            rand = moves[rand]
+            if (self.board[rand[1]][rand[0]] == "bP" and rand[3] == 7): # pawn promotion
+                self.board[rand[3]][rand[2]] = "bQ"
+                self.move_log.append("bQ" + labels[rand[0]] + str(8 - rand[1]))
+            else:
+                if (self.board[rand[1]][rand[0]] == "bK"): # King was moved
+                    self.bK_pos = (rand[2], rand[3])
+                self.board[rand[3]][rand[2]] = self.board[rand[1]][rand[0]]
+                self.move_log.append(self.board[rand[3]][rand[2]] + \
+                                    labels[rand[0]] + str(8 - rand[1]))
+            self.board[rand[1]][rand[0]] = "--"
+        except IndexError:
+            print("Black has no playable moves")
+            print(self.move_log)
+
+    def look_for_check(self, color):
+        if (color == "b"):
+            op = "w"
+            pos = self.bK_pos
+        else:
+            op = "b"
+            pos = self.wK_pos
+        moves = self.get_all_moves(op) # gets all opposite move plays
+        for i in range(len(moves)):
+            if (pos[0] == moves[i][2] and pos[1] == moves[i][3]):
+                return True
+        return False
+
+    def look_for_stalemate(self, color):
+        pass
+
+    def look_for_checkmate(self, color):
+        pass
 
     def get_all_moves(self, color):
         moves = []
@@ -93,13 +141,13 @@ class Board():
         return moves
 
     def get_pawn_moves(self, x, y, moves, color):
-        if (color == "b"):
+        if (color == "b"): # AI move
             if (y == 1): # hasn't moved yet (can move 1 or 2 forward)
-                if (self.board[3][x] == "--"):
-                    moves.append((x, y, x, 3))
                 if (self.board[2][x] == "--"):
                     moves.append((x, y, x, 2))
-            else:
+                if (self.board[3][x] == "--" and self.board[2][x] == "--"):
+                    moves.append((x, y, x, 3))
+            else: # no double step available
                 if (y == 7): # cannot progress anymore (when promoting -> shouldn't happen)
                     return 
                 if (self.board[y + 1][x] == "--"): # move forward one
@@ -116,13 +164,13 @@ class Board():
                         moves.append((x, y, x + 1, y + 1))
                     if ("w" in self.board[y + 1][x - 1]):
                         moves.append((x, y, x - 1, y + 1))
-        else:
+        else: # color is white
             if (y == 6): # hasn't moved yet (can move 1 or 2 forward)
-                if (self.board[4][x] == "--"):
-                    moves.append((x, y, x, 4))
                 if (self.board[5][x] == "--"):
                     moves.append((x, y, x, 5))
-            else:
+                if (self.board[4][x] == "--"  and self.board[5][x] == "--"):
+                    moves.append((x, y, x, 4))
+            else: # no double step available
                 if (y == 0): # cannot progress anymore (when promoting -> shouldn't happen)
                     return 
                 if (self.board[y - 1][x] == "--"): # move forward one

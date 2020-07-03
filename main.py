@@ -107,6 +107,14 @@ def highlight_board(x, y):
     elif (piece == "wP"): # Pawn
         highlight_pawn(pos_x, pos_y)
 
+    # highlights checks
+    if (game_board.look_for_check("b")):
+        pos = game_board.bK_pos
+        draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
+    if (game_board.look_for_check("w")):
+        pos = game_board.wK_pos
+        draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
+
 
 def highlight_knight(pos_x, pos_y):
     possible_combos = [(pos_x - 2, pos_y + 1), (pos_x - 2, pos_y - 1), \
