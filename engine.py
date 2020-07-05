@@ -13,7 +13,7 @@ labels = {
 }
 
 def truncate(f, n):
-    return math.floor(f * 10 ** n) / 10 ** n
+    return math.floor(f * 10 ** n / 10 ** n)
 
 class Board():
     def __init__(self):
@@ -22,9 +22,9 @@ class Board():
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
-            ["--", "--", "--", "--", "bK", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["bP", "bP", "bP", "--", "--", "wR", "--", "bK"],
+            ["--", "--", "--", "--", "--", "wN", "bP", "bP"],
+            ["--", "--", "--", "--", "--", "--", "bN", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -97,6 +97,7 @@ class Board():
                 self.move_log.append(self.board[rand[3]][rand[2]] + \
                                     labels[rand[0]] + str(8 - rand[1]))
             self.board[rand[1]][rand[0]] = "--"
+            print(self.look_for_checkmate("b")) # currently testing
         except IndexError:
             print("Black has no playable moves")
             print(self.move_log)
@@ -114,11 +115,80 @@ class Board():
                 return True
         return False
 
+    # Checks if a position on the board is under attack
+    # Used to check if a checkmate is valid (whether a king can move further)
+    def under_attack(self, x, y, color):
+        if (color == "b"):
+            op = "w"
+        else:
+            op = "b"
+        temp = self.board[y][x]
+        self.board[y][x] = "--"
+        moves = self.get_all_moves(op) # gets all opposite move plays after piece is removed
+        self.board[y][x] = temp
+        for i in range(len(moves)):
+            if (x == moves[i][2] and y == moves[i][3]):
+                return True
+        return False
+
     def look_for_stalemate(self, color):
         pass
 
     def look_for_checkmate(self, color):
-        pass
+        '''
+        1. Can I move out of mate?
+        2. Can I block mate?
+        3. Can I take the attacker?
+        '''
+        moves = []
+        check_moves = {}
+        attacking_pos = {}
+        if (color == "b"):
+            op = "w"
+            pos = self.bK_pos
+        else:
+            op = "b"
+            pos = self.wK_pos
+        op_moves = self.get_all_moves(op) # gets all opposite move plays
+        self.get_king_moves(pos[0], pos[1], moves, "b")
+        # 1. King movement
+        check_moves[pos] = 0 # current place of the king needs to be checked
+        for i in range(len(moves)):
+            check_moves[(moves[i][2], moves[i][3])] = 0
+        for j in range(len(op_moves)):
+            if (op_moves[j][2], op_moves[j][3]) in check_moves:
+                check_moves[(op_moves[j][2], op_moves[j][3])] = 1
+                attacking_pos[(op_moves[j][2], op_moves[j][3])] = 1
+        print(check_moves.keys())
+        print(check_moves.values())
+        for move in check_moves:
+            if (check_moves[move] == 0): # either safe or occupied by white piece
+                # if occupied by white piece -> check if the spot will also be attacked
+                print(move)
+                attacked = self.under_attack(move[0], move[1], color)
+                # if not, there is no checkmate
+                if (not attacked):
+                    return False
+        # 2. King cannot move, look for a block
+        block_counter = 0 # defend all of the spots needed (check_move length)
+        defending_moves = self.get_all_moves(color) # all of the defending team's moves
+        for move in defending_moves:
+            curr = (move[2], move[3])
+            if (curr in check_moves):
+                if (pos == curr): # if king position is being attacked (game over)
+                    return True
+                elif (check_moves[curr] == 1): # needs to be defended
+                    block_counter += 1
+        # 3. Take out attackers
+        # if there are multiple attacking positions, it is a checkmate
+        if (len(attacking_pos) > 1):
+            return True
+        # precondition: there is only one piece threatening
+        for move in defending_moves:
+            curr = (move[2], move[3]) # current move
+            if (curr in attacking_pos): # if the move can take out threatening piece
+                return False
+        return True
 
     def get_all_moves(self, color):
         moves = []

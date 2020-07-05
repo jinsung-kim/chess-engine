@@ -93,7 +93,7 @@ def highlight_board(x, y):
     # If the piece is empty or belongs to the black side, do nothing
     possible_combos = []
     piece = game_board.board[pos_y][pos_x]
-    if (piece == "wN"): # Knight (l shaped)
+    if (piece == "wN"): # Knight (L shaped)
         highlight_knight(pos_x, pos_y)
     elif (piece == "wR"): # Rook (vertical and horizontal)
         highlight_rook(pos_x, pos_y)
@@ -111,9 +111,11 @@ def highlight_board(x, y):
     if (game_board.look_for_check("b")):
         pos = game_board.bK_pos
         draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
+        # game_board.bK_pos = (-1, -1)
     if (game_board.look_for_check("w")):
         pos = game_board.wK_pos
         draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
+        # game_board.wK_pos = (-1, -1)
 
 
 def highlight_knight(pos_x, pos_y):
