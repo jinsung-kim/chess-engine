@@ -22,9 +22,9 @@ class Board():
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
-            ["bP", "bP", "bP", "--", "--", "wR", "--", "bK"],
-            ["--", "--", "--", "--", "--", "wN", "bP", "bP"],
-            ["--", "--", "--", "--", "--", "--", "bN", "--"],
+            ["--", "--", "--", "--", "bK", "--", "--", "--"],
+            ["--", "--", "--", "--", "wP", "--", "--", "--"],
+            ["--", "--", "--", "--", "wQ", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -83,7 +83,7 @@ class Board():
     def make_ai_move(self):
         try:
             moves = self.get_all_moves("b")
-            rand = random.randint(0, len(moves))
+            rand = random.randint(0, len(moves)) # makes a random move
             if (rand == len(moves)):
                 rand = 0
             rand = moves[rand]
@@ -97,7 +97,6 @@ class Board():
                 self.move_log.append(self.board[rand[3]][rand[2]] + \
                                     labels[rand[0]] + str(8 - rand[1]))
             self.board[rand[1]][rand[0]] = "--"
-            print(self.look_for_checkmate("b")) # currently testing
         except IndexError:
             print("Black has no playable moves")
             print(self.move_log)
@@ -132,7 +131,30 @@ class Board():
         return False
 
     def look_for_stalemate(self, color):
-        pass
+        check_moves = {}
+        king_moves = []
+        if (self.look_for_check(color)): # if there is a check, cannot be a stalemate
+            return False
+        # check for all possible moves and see if the king is the only one
+        if (color == "b"):
+            op = "w"
+            pos = self.bK_pos
+        else:
+            op = "b"
+            pos = self.wK_pos
+        all_moves = self.get_all_moves(color)
+        op_moves = self.get_all_moves(op) # gets all opposite move plays
+        self.get_king_moves(pos[0], pos[1], king_moves, color)
+        for move in op_moves: # all opposite moves added into moves
+            check_moves[(move[2], move[3])] = 0 # insert
+        for move in king_moves:
+            if ((move[2], move[3]) not in check_moves): # king move is not in danger
+                return False # return false because not a stalemate
+        for move in all_moves:
+            if ((move[0], move[1]) != (pos[0], pos[1])): # not a king move
+                return False
+        return True
+        
 
     def look_for_checkmate(self, color):
         '''
@@ -153,18 +175,17 @@ class Board():
         self.get_king_moves(pos[0], pos[1], moves, "b")
         # 1. King movement
         check_moves[pos] = 0 # current place of the king needs to be checked
-        for i in range(len(moves)):
-            check_moves[(moves[i][2], moves[i][3])] = 0
+        for move in moves:
+            check_moves[(move[2], move[3])] = 0
         for j in range(len(op_moves)):
             if (op_moves[j][2], op_moves[j][3]) in check_moves:
                 check_moves[(op_moves[j][2], op_moves[j][3])] = 1
                 attacking_pos[(op_moves[j][2], op_moves[j][3])] = 1
-        print(check_moves.keys())
-        print(check_moves.values())
+        # print(check_moves.keys())
+        # print(check_moves.values())
         for move in check_moves:
             if (check_moves[move] == 0): # either safe or occupied by white piece
                 # if occupied by white piece -> check if the spot will also be attacked
-                print(move)
                 attacked = self.under_attack(move[0], move[1], color)
                 # if not, there is no checkmate
                 if (not attacked):

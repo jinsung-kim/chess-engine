@@ -296,6 +296,24 @@ def main():
     mouse_y_cor = -1
     ai_move = False
     while not game_exit:
+        # end game conditions
+        if (game_board.look_for_stalemate("b")):
+            game_exit = True
+            print("Stalemate; draw")
+            print(game_board.move_log)
+        elif (game_board.look_for_stalemate("w")):
+            game_exit = True
+            print("Stalemate; draw")
+            print(game_board.move_log)
+        elif (game_board.look_for_checkmate("b")):
+            game_exit = True
+            print("White wins")
+            print(game_board.move_log)
+        elif (game_board.look_for_checkmate("w")):
+            game_exit = True
+            print("Black wins")
+            print(game_board.move_log)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_exit = True
@@ -312,6 +330,7 @@ def main():
         draw_board()
         highlight_board(mouse_x_cor, mouse_y_cor)
         draw_pieces()
+        # have stalemates here
         pygame.display.update()
 
 main()
