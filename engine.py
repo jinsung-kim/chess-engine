@@ -23,7 +23,7 @@ class Board():
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
             ["--", "--", "--", "--", "bK", "--", "--", "--"],
-            ["--", "--", "--", "--", "wP", "--", "--", "--"],
+            ["--", "--", "--", "--", "wR", "--", "--", "--"],
             ["--", "--", "--", "--", "wQ", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -143,16 +143,17 @@ class Board():
             op = "b"
             pos = self.wK_pos
         all_moves = self.get_all_moves(color)
-        op_moves = self.get_all_moves(op) # gets all opposite move plays
+        op_moves = self.get_potential_moves(op) # gets all opposite move plays
         self.get_king_moves(pos[0], pos[1], king_moves, color)
         for move in op_moves: # all opposite moves added into moves
             check_moves[(move[2], move[3])] = 0 # insert
         for move in king_moves:
             if ((move[2], move[3]) not in check_moves): # king move is not in danger
-                return False # return false because not a stalemate
+                if (self.under_attack(move[2], move[3], color) == False):
+                    return False # return false because not a stalemate
         for move in all_moves:
             if ((move[0], move[1]) != (pos[0], pos[1])): # not a king move
-                return False
+                return False # means there is an alternate move to be made
         return True
         
 
@@ -229,6 +230,45 @@ class Board():
                         self.get_rook_moves(i, j, moves, color)
                     elif ("K" in self.board[j][i]):
                         self.get_king_moves(i, j, moves, color)
+        return moves
+    
+    # Gets all potential moves + valid moves (pawn diagonal attacks)
+    # used to find potential stalemates
+    def get_potential_moves(self, color):
+        moves = self.get_all_moves(color)
+        # add potential diagonals
+        if (color == "b"):
+            for x in range(8):
+                for y in range(8):
+                    if (self.board[y][x] == "bP"):
+                        if (y != 7):
+                            if (x == 0):
+                                if ("b" not in self.board[y + 1][1]):
+                                    moves.append((x, y, 1, y + 1))
+                            elif (x == 7):
+                                if ("b" not in self.board[y + 1][6]):
+                                    moves.append((x, y, 6, y + 1))
+                            else:
+                                if ("b" not in self.board[y + 1][x + 1]):
+                                    moves.append((x, y, x + 1, y + 1))
+                                if ("b" not in self.board[y + 1][x - 1]):
+                                    moves.append((x, y, x - 1, y + 1))
+        else:
+            for x in range(8):
+                for y in range(8):
+                    if (self.board[y][x] == "wP"):
+                        if (y != 0):
+                            if (x == 0):
+                                if ("w" not in self.board[y - 1][1]):
+                                    moves.append((x, y, 1, y - 1))
+                            elif (x == 7):
+                                if ("w" not in self.board[y - 1][6]):
+                                    moves.append((x, y, 6, y - 1))
+                            else:
+                                if ("w" not in self.board[y - 1][x + 1]):
+                                    moves.append((x, y, x + 1, y - 1))
+                                if ("w" not in self.board[y - 1][x - 1]):
+                                    moves.append((x, y, x - 1, y - 1))
         return moves
 
     def get_pawn_moves(self, x, y, moves, color):
