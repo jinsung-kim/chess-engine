@@ -320,13 +320,28 @@ def main():
                     mouse_y_cor = mouse_cor[1]
                     ai_move = game_board.make_move(mouse_x_cor, mouse_y_cor)
                     game_board.last = (mouse_x_cor, mouse_y_cor)
+
+        # end game conditions
+        if (game_board.look_for_stalemate("b")):
+            game_exit = True
+            print("Stalemate; draw")
+        elif (game_board.look_for_stalemate("w")):
+            game_exit = True
+            print("Stalemate; draw")
+        elif (game_board.look_for_checkmate("b")):
+            game_exit = True
+            print("White wins")
+        elif (game_board.look_for_checkmate("w")):
+            game_exit = True
+            print("Black wins")
+        
         if (ai_move): # ai move here
             game_board.make_ai_move()
             ai_move = False
+        
         draw_board()
         highlight_board(mouse_x_cor, mouse_y_cor)
         draw_pieces()
-        # have stalemates here
         pygame.display.update()
 
 main()

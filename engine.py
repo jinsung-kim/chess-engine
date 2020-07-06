@@ -22,13 +22,13 @@ class Board():
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
-            ["wQ", "--", "--", "--", "bK", "--", "--", "--"],
-            ["wR", "--", "--", "--", "--", "--", "--", "--"],
-            ["wR", "--", "--", "--", "--", "--", "--", "--"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
+            ["--", "--", "--", "--", "bQ", "--", "--", "--"],
+            ["wP", "wP", "wP", "wP", "--", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
         self.last = None
@@ -68,15 +68,32 @@ class Board():
 
         if (valid):
             if (self.board[prev_y][prev_x] == "wP" and pos_y == 0): # pawn promotion
-                self.move_log.append("wQ" + labels[pos_x] + str(8 - pos_y))
+                # move on board
                 self.board[pos_y][pos_x] = "wQ"
+                self.board[prev_y][prev_x] = "--"
+                if (self.look_for_check("w") == False):
+                    self.move_log.append(self.board[pos_y][pos_x] + labels[pos_x] + str(8 - pos_y))
+                    return True
+                else: # the move will result in a check / does not protect a check
+                    self.board[prev_y][prev_x] = self.board[pos_y][pos_x]
+                    self.board[pos_y][pos_x] = "--"
+                    return False
+                self.move_log.append("wQ" + labels[pos_x] + str(8 - pos_y))
             else: # not pawn promotion
                 if (self.board[prev_y][prev_x] == "wK"):
                     self.wK_pos = (pos_x, pos_y)
-                self.move_log.append(self.board[prev_y][prev_x] + labels[pos_x] + str(8 - pos_y))
+                # move on board
                 self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
-            self.board[prev_y][prev_x] = "--"
-            return True
+                self.board[prev_y][prev_x] = "--"
+                if (self.look_for_check("w") == False):
+                    self.move_log.append(self.board[pos_y][pos_x] + labels[pos_x] + str(8 - pos_y))
+                    return True
+                else: # the move will result in a check / does not protect a check
+                    self.board[prev_y][prev_x] = self.board[pos_y][pos_x]
+                    self.board[pos_y][pos_x] = "--"
+                    if (self.board[prev_y][prev_x] == "wK"):
+                        self.wK_pos = (prev_x, prev_y)
+                    return False
         return False
 
     def make_ai_move(self):
@@ -107,15 +124,14 @@ class Board():
             op = "b"
             pos = self.wK_pos
         moves = self.get_all_moves(op) # gets all opposite move plays
-        for i in range(len(moves)):
-            if (pos[0] == moves[i][2] and pos[1] == moves[i][3]):
+        for move in moves:
+            if (pos[0] == move[2] and pos[1] == move[3]):
                 return True
         return False
 
     # Checks if a position on the board is under attack
     # Used to check if a checkmate is valid (whether a king can move further)
     def under_attack(self, or_x, or_y, x, y, color):
-        # print(x, y)
         if (color == "b"):
             op = "w"
         else:
