@@ -22,12 +22,12 @@ class Board():
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
-            ["--", "--", "--", "--", "bK", "--", "--", "--"],
-            ["--", "--", "--", "--", "wR", "--", "--", "--"],
-            ["--", "--", "--", "--", "wQ", "--", "--", "--"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "bP", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
@@ -60,10 +60,11 @@ class Board():
                 self.get_bishop_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wK"):
                 self.get_king_moves(prev_x, prev_y, moves, "w")
-
+        print(moves)
         # Check if valid move
-        for i in range(len(moves)):
-            if (pos_x == moves[i][2] and pos_y == moves[i][3]):
+        for move in moves:
+            if (pos_x == move[2] and pos_y == move[3]):
+                print(pos_x, pos_y)
                 valid = True
                 break
 
@@ -98,8 +99,7 @@ class Board():
                                     labels[rand[0]] + str(8 - rand[1]))
             self.board[rand[1]][rand[0]] = "--"
         except IndexError:
-            print("Black has no playable moves")
-            print(self.move_log)
+            print()
 
     def look_for_check(self, color):
         if (color == "b"):
@@ -278,6 +278,18 @@ class Board():
                     moves.append((x, y, x, 2))
                 if (self.board[3][x] == "--" and self.board[2][x] == "--"):
                     moves.append((x, y, x, 3))
+                # diagonal attacks
+                if (x == 0):
+                    if ("w" in self.board[y + 1][1]):
+                        moves.append((x, y, 1, y + 1))
+                elif (x == 7):
+                    if ("w" in self.board[y + 1][6]):
+                        moves.append((x, y, 6, y + 1))
+                else:
+                    if ("w" in self.board[y + 1][x + 1]):
+                        moves.append((x, y, x + 1, y + 1))
+                    if ("w" in self.board[y + 1][x - 1]):
+                        moves.append((x, y, x - 1, y + 1))
             else: # no double step available
                 if (y == 7): # cannot progress anymore (when promoting -> shouldn't happen)
                     return 
@@ -301,6 +313,18 @@ class Board():
                     moves.append((x, y, x, 5))
                 if (self.board[4][x] == "--"  and self.board[5][x] == "--"):
                     moves.append((x, y, x, 4))
+                # diagonal attacks
+                if (x == 0):
+                    if ("b" in self.board[y - 1][1]):
+                        moves.append((x, y, 1, y - 1))
+                elif (x == 7):
+                    if ("b" in self.board[y - 1][6]):
+                        moves.append((x, y, 6, y - 1))
+                else:
+                    if ("b" in self.board[y - 1][x + 1]):
+                        moves.append((x, y, x + 1, y - 1))
+                    if ("b" in self.board[y - 1][x - 1]):
+                        moves.append((x, y, x - 1, y - 1))
             else: # no double step available
                 if (y == 0): # cannot progress anymore (when promoting -> shouldn't happen)
                     return 

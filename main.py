@@ -300,19 +300,15 @@ def main():
         if (game_board.look_for_stalemate("b")):
             game_exit = True
             print("Stalemate; draw")
-            print(game_board.move_log)
         elif (game_board.look_for_stalemate("w")):
             game_exit = True
             print("Stalemate; draw")
-            print(game_board.move_log)
         elif (game_board.look_for_checkmate("b")):
             game_exit = True
             print("White wins")
-            print(game_board.move_log)
         elif (game_board.look_for_checkmate("w")):
             game_exit = True
             print("Black wins")
-            print(game_board.move_log)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -334,5 +330,6 @@ def main():
         pygame.display.update()
 
 main()
+print(game_board.move_log)
 pygame.quit()
 quit()
