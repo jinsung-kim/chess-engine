@@ -22,12 +22,12 @@ class Board():
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
+            ["wQ", "--", "--", "--", "bK", "--", "--", "--"],
+            ["wR", "--", "--", "--", "--", "--", "--", "--"],
+            ["wR", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "bP", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
@@ -60,11 +60,9 @@ class Board():
                 self.get_bishop_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wK"):
                 self.get_king_moves(prev_x, prev_y, moves, "w")
-        print(moves)
         # Check if valid move
         for move in moves:
             if (pos_x == move[2] and pos_y == move[3]):
-                print(pos_x, pos_y)
                 valid = True
                 break
 
@@ -116,20 +114,25 @@ class Board():
 
     # Checks if a position on the board is under attack
     # Used to check if a checkmate is valid (whether a king can move further)
-    def under_attack(self, x, y, color):
+    def under_attack(self, or_x, or_y, x, y, color):
+        # print(x, y)
         if (color == "b"):
             op = "w"
         else:
             op = "b"
         temp = self.board[y][x]
+        or_piece = self.board[or_y][or_x]
         self.board[y][x] = "--"
+        self.board[or_y][or_x] = "--"
         moves = self.get_all_moves(op) # gets all opposite move plays after piece is removed
         self.board[y][x] = temp
-        for i in range(len(moves)):
-            if (x == moves[i][2] and y == moves[i][3]):
+        self.board[or_y][or_x] = or_piece
+        for move in moves:
+            if (x == move[2] and y == move[3]):
                 return True
         return False
 
+    # bug if king is blocking an escape route and piece does not see that due to the block
     def look_for_stalemate(self, color):
         check_moves = {}
         king_moves = []
@@ -148,8 +151,8 @@ class Board():
         for move in op_moves: # all opposite moves added into moves
             check_moves[(move[2], move[3])] = 0 # insert
         for move in king_moves:
-            if ((move[2], move[3]) not in check_moves): # king move is not in danger
-                if (self.under_attack(move[2], move[3], color) == False):
+            if ((move[2], move[3]) not in check_moves): # king move (might) not be in danger
+                if (self.under_attack(move[0], move[1], move[2], move[3], color) == False):
                     return False # return false because not a stalemate
         for move in all_moves:
             if ((move[0], move[1]) != (pos[0], pos[1])): # not a king move
@@ -187,7 +190,7 @@ class Board():
         for move in check_moves:
             if (check_moves[move] == 0): # either safe or occupied by white piece
                 # if occupied by white piece -> check if the spot will also be attacked
-                attacked = self.under_attack(move[0], move[1], color)
+                attacked = self.under_attack(pos[0], pos[1], move[0], move[1], color)
                 # if not, there is no checkmate
                 if (not attacked):
                     return False
