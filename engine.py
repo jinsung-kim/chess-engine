@@ -38,7 +38,7 @@ class Board():
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "wN", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
@@ -53,6 +53,7 @@ class Board():
     def make_move(self, x, y):
         pos_x = int(truncate(x / 50, 0))
         pos_y = int(truncate(y / 50, 0))
+        # placeholders for x,y values
         prev_x = -1
         prev_y = -1
         valid = False
@@ -111,11 +112,12 @@ class Board():
 
     def make_ai_move(self):
         try:
-            moves = self.get_all_moves("b")
-            rand = random.randint(0, len(moves)) # makes a random move
-            if (rand == len(moves)):
-                rand = 0
-            rand = moves[rand]
+            # moves = self.get_all_moves("b")
+            # rand = random.randint(0, len(moves)) # makes a random move
+            # if (rand == len(moves)):
+            #     rand = 0
+            # rand = moves[rand]
+            rand = self.generate_best_ai_move(3, copy.deepcopy(self.board), True)
             if (self.board[rand[1]][rand[0]] == "bP" and rand[3] == 7): # pawn promotion
                 self.board[rand[3]][rand[2]] = "bQ"
                 self.move_log.append("bQ" + labels[rand[0]] + str(8 - rand[1]))
@@ -129,21 +131,106 @@ class Board():
         except IndexError:
             print()
 
+    
+    def generate_best_ai_move(self, depth, board, maximizing):
+        possible_moves = self.get_all_moves("b") # all AI moves
+        best_move_val = -9999
+        best_move = None
+        promotion_move = False
+        for move in possible_moves:
+            # make move
+            board[move[3]][move[2]] = board[move[1]][move[0]]
+            board[move[1]][move[0]] = "--"
+            if (board[move[3]][move[2]][1] == "P" and move[2] == 7): # pawn promotion
+                board[move[3]][move[2]] = "bQ"
+                promotion_move = True
+            
+            val = max(best_move_val, self.minimax(depth - 1, board, -10000, 10000, not maximizing))
+
+            # undo move
+            board[move[1]][move[0]] = board[move[3]][move[2]]
+            board[move[3]][move[2]] = "--"
+            if (promotion_move): # pawn (de)motion
+                board[move[1]][move[0]] = "wP"
+                promotion_move = False
+
+            if (val > best_move_val):
+                print("Best score:", str(val))
+                best_move_val = val
+                print("Best move:", move)
+                best_move = move
+        return best_move
+
+
     # Minimax algorithm with alpha-beta pruning
     def minimax(self, depth, board, alpha, beta, maximizing):
-        if (depth == 0):
-            pass
+        if (depth == 0): # no further to go, evaluate the position of the board
+            return -self.evaluate(board)
         best_move = None
+        promotion_move = False
         if (maximizing):
-            pass
+            best_move = -9999
+            possible_moves = self.get_all_moves("w")
+            for move in possible_moves:
+                # makes the move
+                board[move[3]][move[2]] = board[move[1]][move[0]]
+                board[move[1]][move[0]] = "--"
+                if (board[move[3]][move[2]][1] == "P" and move[2] == 0): # pawn promotion
+                    board[move[3]][move[2]] = "wQ"
+                    promotion_move = True
+                
+                # recursive call
+                best_move = max(best_move, self.minimax(depth - 1, board, alpha, beta, not maximizing))
+
+                # undo the move
+                board[move[1]][move[0]] = board[move[3]][move[2]]
+                board[move[3]][move[2]] = "--"
+                if (promotion_move): # pawn (de)motion
+                    board[move[1]][move[0]] = "wP"
+                    promotion_move = False
+
+                alpha = max(alpha, best_move)
+                if (beta <= alpha): # no need to check branch further
+                    return best_move
+            return best_move
         else:
-            pass
-        return best_move
+            best_move = 9999
+            possible_moves = self.get_all_moves("b")
+            for move in possible_moves:
+                board[move[3]][move[2]] = board[move[1]][move[0]]
+                board[move[1]][move[0]] = "--"
+                if (board[move[3]][move[2]][1] == "P" and move[2] == 7): # pawn promotion
+                    board[move[3]][move[2]] = "bQ"
+                    promotion_move = True
+                
+                # recursive call
+                best_move = min(best_move, self.minimax(depth - 1, board, alpha, beta, not maximizing))
+
+                # undo the move
+                board[move[1]][move[0]] = board[move[3]][move[2]]
+                board[move[3]][move[2]] = "--"
+                if (promotion_move): # pawn (de)motion
+                    board[move[1]][move[0]] = "bP"
+                    promotion_move = False
+
+                beta = min(beta, best_move)
+                if (beta <= alpha): # no need to check branch further
+                    return best_move
+            return best_move
 
 
     # evalutes the board given the position
     def evaluate(self, board):
-        pass
+        val = 0
+        for x in range(8):
+            for y in range(8):
+                # if the piece is your team's color, add its value
+                if (self.board[x][y][0] == "w"):
+                    val += pieces[self.board[x][y][1]]
+                elif (self.board[x][y] == "b"): # deduct every time an opposite team piece is seen
+                    val -= pieces[self.board[x][y][1]]
+        return val
+        
 
     def look_for_check(self, color):
         if (color == "b"):
@@ -214,6 +301,7 @@ class Board():
         moves = []
         check_moves = {}
         attacking_pos = {}
+        king_attacked = 0
         if (color == "b"):
             op = "w"
             pos = self.bK_pos
@@ -226,10 +314,16 @@ class Board():
         check_moves[pos] = 0 # current place of the king needs to be checked
         for move in moves:
             check_moves[(move[2], move[3])] = 0
-        for j in range(len(op_moves)):
-            if (op_moves[j][2], op_moves[j][3]) in check_moves:
-                check_moves[(op_moves[j][2], op_moves[j][3])] = 1
-                attacking_pos[(op_moves[j][2], op_moves[j][3])] = 1
+        for move in op_moves:
+            if (move[2], move[3]) in check_moves:
+                check_moves[(move[2], move[3])] = 1
+                if ((move[2], move[3]) in attacking_pos):
+                    attacking_pos[(move[0], move[1])] += 1
+                    # Note: If the king is attacked twice, checkmate
+                    if (move[0] == pos[0] and move[1] == pos[1]):
+                        king_attacked += 1
+                else:
+                    attacking_pos[(move[0], move[1])] = 1
         for move in check_moves:
             if (check_moves[move] == 0): # either safe or occupied by white piece
                 # if occupied by white piece -> check if the spot will also be attacked
@@ -248,15 +342,17 @@ class Board():
                 elif (check_moves[curr] == 1): # needs to be defended
                     block_counter += 1
         # 3. Take out attackers
-        # if there are multiple attacking positions, it is a checkmate
-        if (len(attacking_pos) > 1):
+        # if there are multiple attacking positions, it is a checkmate (by default)
+        if (king_attacked > 1):
             return True
         # precondition: there is only one piece threatening
         for move in defending_moves:
             curr = (move[2], move[3]) # current move
-            if (curr in attacking_pos): # if the move can take out threatening piece
+            # if the move can take out threatening piece
+            if (curr in attacking_pos):
                 return False
         return True
+
 
     def get_all_moves(self, color):
         moves = []

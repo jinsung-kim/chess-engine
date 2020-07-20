@@ -298,16 +298,16 @@ def main():
     while not game_exit:
         # end game conditions
         if (game_board.look_for_stalemate("b")):
-            game_exit = True
+            # game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_stalemate("w")):
-            game_exit = True
+            # game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_checkmate("b")):
-            game_exit = True
+            # game_exit = True
             print("White wins")
         elif (game_board.look_for_checkmate("w")):
-            game_exit = True
+            # game_exit = True
             print("Black wins")
         
         for event in pygame.event.get():
@@ -323,16 +323,16 @@ def main():
 
         # end game conditions
         if (game_board.look_for_stalemate("b")):
-            game_exit = True
+            # game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_stalemate("w")):
-            game_exit = True
+            # game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_checkmate("b")):
-            game_exit = True
+            # game_exit = True
             print("White wins")
         elif (game_board.look_for_checkmate("w")):
-            game_exit = True
+            # game_exit = True
             print("Black wins")
         
         if (ai_move): # ai move here
