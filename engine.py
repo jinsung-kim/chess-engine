@@ -1,5 +1,8 @@
 import math
 import random
+import copy
+
+# https://github.com/AnthonyASanchez/PythonChessAi/blob/master/AlphaBetaPruning.py
 
 labels = {
     0: "a",
@@ -10,6 +13,16 @@ labels = {
     5: "f",
     6: "g",
     7: "h"
+}
+
+# value of each piece
+pieces = {
+    "P": 10,
+    "R": 50,
+    "N": 30,
+    "B": 30,
+    "Q": 90,
+    "K": 900
 }
 
 def truncate(f, n):
@@ -27,8 +40,8 @@ class Board():
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "bQ", "--", "--", "--"],
-            ["wP", "wP", "wP", "wP", "--", "wP", "wP", "wP"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
         self.last = None
@@ -116,6 +129,22 @@ class Board():
         except IndexError:
             print()
 
+    # Minimax algorithm with alpha-beta pruning
+    def minimax(self, depth, board, alpha, beta, maximizing):
+        if (depth == 0):
+            pass
+        best_move = None
+        if (maximizing):
+            pass
+        else:
+            pass
+        return best_move
+
+
+    # evalutes the board given the position
+    def evaluate(self, board):
+        pass
+
     def look_for_check(self, color):
         if (color == "b"):
             op = "w"
@@ -201,8 +230,6 @@ class Board():
             if (op_moves[j][2], op_moves[j][3]) in check_moves:
                 check_moves[(op_moves[j][2], op_moves[j][3])] = 1
                 attacking_pos[(op_moves[j][2], op_moves[j][3])] = 1
-        # print(check_moves.keys())
-        # print(check_moves.values())
         for move in check_moves:
             if (check_moves[move] == 0): # either safe or occupied by white piece
                 # if occupied by white piece -> check if the spot will also be attacked
@@ -255,8 +282,8 @@ class Board():
     # used to find potential stalemates
     def get_potential_moves(self, color):
         moves = self.get_all_moves(color)
-        # add potential diagonals
-        if (color == "b"):
+        # add potential diagonals (for pawns)
+        if (color == "b"): # for black
             for x in range(8):
                 for y in range(8):
                     if (self.board[y][x] == "bP"):
@@ -272,7 +299,7 @@ class Board():
                                     moves.append((x, y, x + 1, y + 1))
                                 if ("b" not in self.board[y + 1][x - 1]):
                                     moves.append((x, y, x - 1, y + 1))
-        else:
+        else: # for white
             for x in range(8):
                 for y in range(8):
                     if (self.board[y][x] == "wP"):
