@@ -49,8 +49,50 @@ class Board():
         # Used for checking for check, checkmate, and stalemates
         self.bK_pos = (4, 0)
         self.wK_pos = (4, 7)
+        self.print_board(self.board)
+
+    
+    def print_board(self, board):
+        '''
+        Prints an ASCII board
+        '''
+        line = ""
+        for x in range(8):
+            for y in range(8):
+                if (board[x][y] == "bK"):
+                    line = line + u'\u265A' + " "
+                elif (board[x][y] == "bQ"):
+                    line = line + u'\u265B' + " "
+                elif (board[x][y] == "bR"):
+                    line = line + u'\u265C' + " "
+                elif (board[x][y] == "bB"):
+                    line = line + u'\u265D' + " "
+                elif (board[x][y] == "bN"):
+                    line = line + u'\u265E' + " "
+                elif (board[x][y] == "bP"):
+                    line = line + u'\u265F' + " "
+                elif (board[x][y] == "wK"):
+                    line = line + u'\u2654' + " "
+                elif (board[x][y] == "wQ"):
+                    line = line + u'\u2655' + " "
+                elif (board[x][y] == "wR"):
+                    line = line + u'\u2656' + " "
+                elif (board[x][y] == "wB"):
+                    line = line + u'\u2657' + " "
+                elif (board[x][y] == "wN"):
+                    line = line + u'\u2658' + " "
+                elif (board[x][y] == "wP"):
+                    line = line + u'\u2659' + " "
+                else:
+                    line = line + ". "
+            print(line)
+            line = ""
 
     def make_move(self, x, y):
+        '''
+        Makes a move based on the x and y coordinates of the mouse click
+        Checks the previous values, and sees if a valid move has been made
+        '''
         pos_x = int(truncate(x / 50, 0))
         pos_y = int(truncate(y / 50, 0))
         # placeholders for x,y values
@@ -110,7 +152,12 @@ class Board():
                     return False
         return False
 
+
     def make_ai_move(self):
+        '''
+        Makes the actual move that the AI determines is the best move, then makes that move
+        Note: The deeper the depth selected, the more powerful the AI will become as it looks further
+        '''
         try:
             move = self.generate_best_ai_move(3, copy.deepcopy(self.board), True) # creates a separate board
             if (self.board[move[1]][move[0]] == "bP" and move[3] == 7): # pawn promotion
@@ -128,8 +175,13 @@ class Board():
 
     
     def generate_best_ai_move(self, depth, board, maximizing):
+        '''
+        This function looks for the most negative value and accompanying move
+        Note: The more negative a move is evaluated, the better it is for the AI,
+        because the evaluation is positive for user pieces, and negative for the AI
+        '''
         possible_moves = self.alpha_beta_moves(board, "b") # all AI moves
-        best_move_val = -9999
+        best_move_val = 9999
         best_move = None
         promotion_move = False
         for move in possible_moves:
@@ -140,16 +192,16 @@ class Board():
                 board[move[3]][move[2]] = "bQ"
                 promotion_move = True
             
-            val = max(best_move_val, self.minimax(depth - 1, board, -10000, 10000, not maximizing))
+            val = min(best_move_val, self.minimax(depth - 1, board, -10000, 10000, not maximizing))
 
             # undo move
             board[move[1]][move[0]] = board[move[3]][move[2]]
             board[move[3]][move[2]] = "--"
             if (promotion_move): # pawn (de)motion
-                board[move[1]][move[0]] = "wP"
+                board[move[1]][move[0]] = "bP"
                 promotion_move = False
 
-            if (val > best_move_val):
+            if (val < best_move_val):
                 best_move_val = val
                 best_move = move
                 print("Best score:", str(val))
@@ -157,8 +209,12 @@ class Board():
         return best_move
 
 
-    # Minimax algorithm with alpha-beta pruning
     def minimax(self, depth, board, alpha, beta, maximizing):
+        '''
+        The actual minimax algorithm with alpha-beta pruning
+        If the max or min is not within range, then the branch 
+        will no longer search within that branch
+        '''
         if (depth == 0): # no further to go, evaluate the position of the board
             return -self.evaluate(board)
         promotion_move = False
@@ -207,8 +263,13 @@ class Board():
             return best_move
 
 
-    # evalutes the board given the position
     def evaluate(self, board):
+        '''
+        The provided board is evaluated with user pieces having a positive value, and negative for AI
+        Ex: If the AI is up a knight, then the board will be evaluated at -30
+        Ex: If the user is up a queen, then the board will be evaluated at +90
+        Time Complexity: O(1) -> 64 pieces to be checked max, relies on dictionary
+        '''
         val = 0
         for x in range(8):
             for y in range(8):
@@ -221,6 +282,10 @@ class Board():
         
 
     def look_for_check(self, color):
+        '''
+        Looks for a check, given the current position of the king
+        Time Complexity: O(n) -> Has to develop opponent moves to see if there is a risk
+        '''
         if (color == "b"):
             op = "w"
             pos = self.bK_pos
@@ -233,9 +298,12 @@ class Board():
                 return True
         return False
 
-    # Checks if a position on the board is under attack
-    # Used to check if a checkmate is valid (whether a king can move further)
+
     def under_attack(self, or_x, or_y, x, y, color):
+        '''
+        Checks to see if a position on the board is under attack
+        Used to check if a checkmate is valid (whether a king can move further)
+        '''
         if (color == "b"):
             op = "w"
         else:
@@ -252,8 +320,12 @@ class Board():
                 return True
         return False
 
-    # bug if king is blocking an escape route and piece does not see that due to the block
+
     def look_for_stalemate(self, color):
+        '''
+        Checks to see if there is a current stalemate, in which the king cannot move
+        Time Complexity: O(n) -> Looking for a check is linear, everything else is a simple comparison
+        '''
         check_moves = {}
         king_moves = []
         if (self.look_for_check(color)): # if there is a check, cannot be a stalemate
@@ -282,9 +354,11 @@ class Board():
 
     def look_for_checkmate(self, color):
         '''
+        Looks for an end game situation by analyzing three cases:
         1. Can I move out of mate?
         2. Can I block mate?
         3. Can I take the attacker?
+        Time Complexity: O(n) -> Looks for check and stalemate, which are linear
         '''
         moves = []
         check_moves = {}
@@ -296,7 +370,7 @@ class Board():
         else:
             op = "b"
             pos = self.wK_pos
-        op_moves = self.get_all_moves(op) # gets all opposite move plays
+        op_moves = self.get_potential_moves(op) # gets all opposite move plays
         self.get_king_moves(pos[0], pos[1], moves, "b")
         # 1. King movement
         check_moves[pos] = 0 # current place of the king needs to be checked
@@ -342,9 +416,11 @@ class Board():
         return True
 
 
-    # Used to get potential moves (based on what the current state of the board is)
-    # returns the board to its original state
     def alpha_beta_moves(self, board, color):
+        '''
+        Used to find potential moves (based on what the current state of the given board is)
+        Returns the board to its original state
+        '''
         moves = []
         temp_board = copy.deepcopy(self.board) # store the original board
         self.board = copy.deepcopy(board) # switch board
@@ -370,6 +446,9 @@ class Board():
 
 
     def get_all_moves(self, color):
+        '''
+        Gets all the real-time moves to be made for a team, 
+        '''
         moves = []
         for i in range(8):
             for j in range(8):
@@ -389,9 +468,12 @@ class Board():
                         self.get_king_moves(i, j, moves, color)
         return moves
     
-    # Gets all potential moves + valid moves (pawn diagonal attacks)
-    # used to find potential stalemates
+
     def get_potential_moves(self, color):
+        '''
+        Gets all the potential moves and valid moves
+        Created to consider all pawn diagonal attacks that might lead to stalemates and checkmates
+        '''
         moves = self.get_all_moves(color)
         # add potential diagonals (for pawns)
         if (color == "b"): # for black
