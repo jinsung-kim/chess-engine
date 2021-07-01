@@ -68,6 +68,7 @@ class Board():
         '''
         Makes a move based on the x and y coordinates of the mouse click
         Checks the previous values, and sees if a valid move has been made
+        Returns whether the move is valid so that the AI can move accordingly
         '''
         pos_x = int(truncate(x / 50, 0))
         pos_y = int(truncate(y / 50, 0))
@@ -142,19 +143,6 @@ class Board():
         Makes the actual move that the AI determines is the best move, then makes that move
         Note: The deeper the depth selected, the more powerful the AI will become as it looks further
         '''
-        # moves = self.get_all_moves("b") # currently selecting the first move
-        # print(moves)
-        # move = moves[0]
-        # if (self.board[move[1]][move[0]] == "bP" and move[3] == 7): # pawn promotion
-        #     self.board[move[3]][move[2]] = "bQ"
-        #     self.move_log.append("bQ" + labels[move[0]] + str(8 - move[1]))
-        # else:
-        #     if (self.board[move[1]][move[0]] == "bK"): # AI king was moved
-        #         self.bK_pos = (move[2], move[3]) # Update the position of the king
-        #     self.board[move[3]][move[2]] = self.board[move[1]][move[0]]
-        #     self.move_log.append(self.board[move[3]][move[2]] + \
-        #                         labels[move[0]] + str(8 - move[1]))
-        # self.board[move[1]][move[0]] = "--"
         try:
             move = self.generate_best_ai_move(3, copy.deepcopy(self.board)) # creates a separate board
             if (self.board[move[1]][move[0]] == "bP" and move[3] == 7): # pawn promotion
@@ -196,7 +184,7 @@ class Board():
                 board[move[3]][move[2]] = "bQ"
                 promotion_move = True
             
-            val = min(best_move_val, self.minimax(depth - 1, board, -10000, 10000, True))
+            val = min(best_move_val, self.minimax(depth - 1, board, 10000, -10000, True))
             # undo move
             board[move[1]][move[0]] = board[move[3]][move[2]]
             board[move[3]][move[2]] = "--"
@@ -207,8 +195,9 @@ class Board():
             if (val < best_move_val):
                 best_move_val = val
                 best_move = move
-                # print("Best score:", str(val))
-                # print("Best move:", move)
+        print("Best score:", str(val))
+        print("Best move:", best_move)
+        print(board[best_move[1]][best_move[0]])
 
         return best_move
 
@@ -226,6 +215,7 @@ class Board():
             best_move = -9999
             possible_moves = self.alpha_beta_moves(board, "w")
             for move in possible_moves:
+                # print(len(possible_moves))
                 # makes the move
                 board[move[3]][move[2]] = board[move[1]][move[0]]
                 board[move[1]][move[0]] = "--"
@@ -242,12 +232,13 @@ class Board():
                     promotion_move = False
                 alpha = max(alpha, best_move)
                 if (beta <= alpha): # no need to check branch further
-                    return alpha
+                    return best_move
             return best_move
         else:
             best_move = 9999
             possible_moves = self.alpha_beta_moves(board, "b")
             for move in possible_moves:
+                # print(len(possible_moves))
                 board[move[3]][move[2]] = board[move[1]][move[0]]
                 board[move[1]][move[0]] = "--"
                 if (board[move[3]][move[2]][1] == "P" and move[3] == 7): # pawn promotion
@@ -263,7 +254,7 @@ class Board():
                     promotion_move = False
                 beta = min(beta, best_move)
                 if (beta <= alpha): # no need to check branch further
-                    return alpha
+                    return best_move
             return best_move
 
 
@@ -420,6 +411,23 @@ class Board():
             if (curr in attacking_pos):
                 return False
         return True
+
+
+    def only_kings(self):
+        wp = 0
+        bp = 0
+        for i in range(8):
+            for j in range(8):
+                if (self.board[i][j][0] == 'w'):
+                    wp += 1
+                    if (wp > 1):
+                        return False
+                elif (self.board[i][j][0] == 'b'):
+                    bp += 1
+                    if (bp > 1):
+                        return False
+        return True
+                
 
 
     def alpha_beta_moves(self, board, color):

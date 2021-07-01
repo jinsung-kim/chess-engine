@@ -356,6 +356,9 @@ def main():
         elif (game_board.look_for_checkmate("w")):
             game_exit = True
             print("Black wins")
+        elif (game_board.only_kings()):
+            game_exit = True
+            print("Stalemate; draw - Only kings remain")
         
         if (ai_move): # ai move here if the user already made a valid move
             game_board.make_ai_move()
