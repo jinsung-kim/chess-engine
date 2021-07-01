@@ -32,59 +32,35 @@ class Board():
     def __init__(self):
         # The first letter represents the color of the piece 'b' or 'w'
         # The second letter represents the piece
+        # -- represents an empty space
         self.board = [
             # "bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"
             # "bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "wN", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]
         ]
         self.last = None
+        # Tracks all of the moves made throughout the game
         self.move_log = []
         # Used for checking for check, checkmate, and stalemates
         self.bK_pos = (4, 0)
         self.wK_pos = (4, 7)
-        self.print_board(self.board)
 
     
     def print_board(self, board):
         '''
-        Prints an ASCII board
+        Prints a given board state into the console/terminal
         '''
         line = ""
         for x in range(8):
             for y in range(8):
-                if (board[x][y] == "bK"):
-                    line = line + u'\u265A' + " "
-                elif (board[x][y] == "bQ"):
-                    line = line + u'\u265B' + " "
-                elif (board[x][y] == "bR"):
-                    line = line + u'\u265C' + " "
-                elif (board[x][y] == "bB"):
-                    line = line + u'\u265D' + " "
-                elif (board[x][y] == "bN"):
-                    line = line + u'\u265E' + " "
-                elif (board[x][y] == "bP"):
-                    line = line + u'\u265F' + " "
-                elif (board[x][y] == "wK"):
-                    line = line + u'\u2654' + " "
-                elif (board[x][y] == "wQ"):
-                    line = line + u'\u2655' + " "
-                elif (board[x][y] == "wR"):
-                    line = line + u'\u2656' + " "
-                elif (board[x][y] == "wB"):
-                    line = line + u'\u2657' + " "
-                elif (board[x][y] == "wN"):
-                    line = line + u'\u2658' + " "
-                elif (board[x][y] == "wP"):
-                    line = line + u'\u2659' + " "
-                else:
-                    line = line + ". "
+                line = line + board[x][y] + " "
             print(line)
             line = ""
 
@@ -100,7 +76,9 @@ class Board():
         prev_y = -1
         valid = False
         moves = []
+        # Makes sure the player has selected a piece to be moved
         if (self.last != None):
+            # Gets the coordinates to determine which piece it is
             prev_x = int(truncate(self.last[0] / 50, 0))
             prev_y = int(truncate(self.last[1] / 50, 0))
             if (self.board[prev_y][prev_x] == "wP"):
@@ -116,35 +94,41 @@ class Board():
                 self.get_bishop_moves(prev_x, prev_y, moves, "w")
             elif (self.board[prev_y][prev_x] == "wK"):
                 self.get_king_moves(prev_x, prev_y, moves, "w")
+        # moves stores all of the possible places that piece can go based on the
+        # state of the current board
         # Check if valid move
         for move in moves:
             if (pos_x == move[2] and pos_y == move[3]):
                 valid = True
                 break
 
+        # Checks if there were any piece changing moves
         if (valid):
             if (self.board[prev_y][prev_x] == "wP" and pos_y == 0): # pawn promotion
                 # move on board
                 self.board[pos_y][pos_x] = "wQ"
                 self.board[prev_y][prev_x] = "--"
-                if (self.look_for_check("w") == False):
+                if (self.look_for_check("w") == False): # Makes sure that the player's king is not in danger
                     self.move_log.append(self.board[pos_y][pos_x] + labels[pos_x] + str(8 - pos_y))
                     return True
                 else: # the move will result in a check / does not protect a check
                     self.board[prev_y][prev_x] = self.board[pos_y][pos_x]
                     self.board[pos_y][pos_x] = "--"
                     return False
-                self.move_log.append("wQ" + labels[pos_x] + str(8 - pos_y))
+                # self.move_log.append("wQ" + labels[pos_x] + str(8 - pos_y))
             else: # not pawn promotion
+                # Move is trying to move the player's king
                 if (self.board[prev_y][prev_x] == "wK"):
-                    self.wK_pos = (pos_x, pos_y)
+                    self.wK_pos = (pos_x, pos_y) # Update the king position
                 # move on board
                 self.board[pos_y][pos_x] = self.board[prev_y][prev_x]
                 self.board[prev_y][prev_x] = "--"
-                if (self.look_for_check("w") == False):
+                if (self.look_for_check("w") == False): # Makes sure that the player's king is not in danger
                     self.move_log.append(self.board[pos_y][pos_x] + labels[pos_x] + str(8 - pos_y))
                     return True
                 else: # the move will result in a check / does not protect a check
+                    # Undo what move the player was going to make
+                    # Basically revert to the state of the board before the move was going to be made
                     self.board[prev_y][prev_x] = self.board[pos_y][pos_x]
                     self.board[pos_y][pos_x] = "--"
                     if (self.board[prev_y][prev_x] == "wK"):
@@ -158,8 +142,21 @@ class Board():
         Makes the actual move that the AI determines is the best move, then makes that move
         Note: The deeper the depth selected, the more powerful the AI will become as it looks further
         '''
+        # moves = self.get_all_moves("b") # currently selecting the first move
+        # print(moves)
+        # move = moves[0]
+        # if (self.board[move[1]][move[0]] == "bP" and move[3] == 7): # pawn promotion
+        #     self.board[move[3]][move[2]] = "bQ"
+        #     self.move_log.append("bQ" + labels[move[0]] + str(8 - move[1]))
+        # else:
+        #     if (self.board[move[1]][move[0]] == "bK"): # AI king was moved
+        #         self.bK_pos = (move[2], move[3]) # Update the position of the king
+        #     self.board[move[3]][move[2]] = self.board[move[1]][move[0]]
+        #     self.move_log.append(self.board[move[3]][move[2]] + \
+        #                         labels[move[0]] + str(8 - move[1]))
+        # self.board[move[1]][move[0]] = "--"
         try:
-            move = self.generate_best_ai_move(3, copy.deepcopy(self.board), True) # creates a separate board
+            move = self.generate_best_ai_move(3, copy.deepcopy(self.board)) # creates a separate board
             if (self.board[move[1]][move[0]] == "bP" and move[3] == 7): # pawn promotion
                 self.board[move[3]][move[2]] = "bQ"
                 self.move_log.append("bQ" + labels[move[0]] + str(8 - move[1]))
@@ -171,29 +168,35 @@ class Board():
                                     labels[move[0]] + str(8 - move[1]))
             self.board[move[1]][move[0]] = "--"
         except IndexError:
-            print()
+            print("Index Error")
+            self.game_over = True
+        except TypeError: # Should be a stalemate case
+            # no possible moves -> null type
+            print("Type Error")
+            self.game_over = True
 
     
-    def generate_best_ai_move(self, depth, board, maximizing):
+    def generate_best_ai_move(self, depth, board):
         '''
         This function looks for the most negative value and accompanying move
         Note: The more negative a move is evaluated, the better it is for the AI,
         because the evaluation is positive for user pieces, and negative for the AI
         '''
         possible_moves = self.alpha_beta_moves(board, "b") # all AI moves
-        best_move_val = 9999
-        best_move = None
+        best_move_val = 9999 # Any move will override this value, over the iterations of moves,
+        # The best move will be selected
+        best_move = possible_moves[0] # This move is not the best (YET)
         promotion_move = False
         for move in possible_moves:
             # make move
             board[move[3]][move[2]] = board[move[1]][move[0]]
             board[move[1]][move[0]] = "--"
-            if (board[move[3]][move[2]][1] == "P" and move[3] == 7): # pawn promotion
+            # If the piece that was just moved was a pawn, and is on the last row -> promote it
+            if (board[move[3]][move[2]][1] == "P" and move[3] == 7):
                 board[move[3]][move[2]] = "bQ"
                 promotion_move = True
             
-            val = min(best_move_val, self.minimax(depth - 1, board, -10000, 10000, not maximizing))
-
+            val = min(best_move_val, self.minimax(depth - 1, board, -10000, 10000, True))
             # undo move
             board[move[1]][move[0]] = board[move[3]][move[2]]
             board[move[3]][move[2]] = "--"
@@ -204,8 +207,9 @@ class Board():
             if (val < best_move_val):
                 best_move_val = val
                 best_move = move
-                print("Best score:", str(val))
-                print("Best move:", move)
+                # print("Best score:", str(val))
+                # print("Best move:", move)
+
         return best_move
 
 
@@ -216,7 +220,7 @@ class Board():
         will no longer search within that branch
         '''
         if (depth == 0): # no further to go, evaluate the position of the board
-            return -self.evaluate(board)
+            return self.evaluate(board)
         promotion_move = False
         if (maximizing):
             best_move = -9999
@@ -229,7 +233,7 @@ class Board():
                     board[move[3]][move[2]] = "wQ"
                     promotion_move = True
                 # recursive call
-                best_move = max(best_move, self.minimax(depth - 1, board, alpha, beta, not maximizing))
+                best_move = max(best_move, self.minimax(depth - 1, board, alpha, beta, False))
                 # undo the move
                 board[move[1]][move[0]] = board[move[3]][move[2]]
                 board[move[3]][move[2]] = "--"
@@ -238,7 +242,7 @@ class Board():
                     promotion_move = False
                 alpha = max(alpha, best_move)
                 if (beta <= alpha): # no need to check branch further
-                    return best_move
+                    return alpha
             return best_move
         else:
             best_move = 9999
@@ -250,7 +254,7 @@ class Board():
                     board[move[3]][move[2]] = "bQ"
                     promotion_move = True
                 # recursive call
-                best_move = min(best_move, self.minimax(depth - 1, board, alpha, beta, not maximizing))
+                best_move = min(best_move, self.minimax(depth - 1, board, alpha, beta, True))
                 # undo the move
                 board[move[1]][move[0]] = board[move[3]][move[2]]
                 board[move[3]][move[2]] = "--"
@@ -259,7 +263,7 @@ class Board():
                     promotion_move = False
                 beta = min(beta, best_move)
                 if (beta <= alpha): # no need to check branch further
-                    return best_move
+                    return alpha
             return best_move
 
 
@@ -268,18 +272,20 @@ class Board():
         The provided board is evaluated with user pieces having a positive value, and negative for AI
         Ex: If the AI is up a knight, then the board will be evaluated at -30
         Ex: If the user is up a queen, then the board will be evaluated at +90
+        (assuming that all other pieces remain on the board)
         Time Complexity: O(1) -> 64 pieces to be checked max, relies on dictionary
         '''
         val = 0
         for x in range(8):
             for y in range(8):
                 # if the piece is your team's color, add its value
-                if (self.board[x][y][0] == "w"):
-                    val += pieces[self.board[x][y][1]]
-                elif (self.board[x][y][0] == "b"): # deduct every time an opposite team piece is seen
-                    val -= pieces[self.board[x][y][1]]
+                if (board[x][y][0] == "w"):
+                    val += pieces[board[x][y][1]]
+                # deduct every time an opposite team piece is seen
+                elif (board[x][y][0] == "b"):
+                    val -= pieces[board[x][y][1]]
         return val
-        
+    
 
     def look_for_check(self, color):
         '''
@@ -371,7 +377,7 @@ class Board():
             op = "b"
             pos = self.wK_pos
         op_moves = self.get_potential_moves(op) # gets all opposite move plays
-        self.get_king_moves(pos[0], pos[1], moves, "b")
+        self.get_king_moves(pos[0], pos[1], moves, color)
         # 1. King movement
         check_moves[pos] = 0 # current place of the king needs to be checked
         for move in moves:
@@ -419,7 +425,7 @@ class Board():
     def alpha_beta_moves(self, board, color):
         '''
         Used to find potential moves (based on what the current state of the given board is)
-        Returns the board to its original state
+        Returns the moves that the board is able to do
         '''
         moves = []
         temp_board = copy.deepcopy(self.board) # store the original board
@@ -447,7 +453,8 @@ class Board():
 
     def get_all_moves(self, color):
         '''
-        Gets all the real-time moves to be made for a team, 
+        Gets all the real-time moves to be made for a team, given the pieces
+        that remain on the board
         '''
         moves = []
         for i in range(8):
@@ -473,6 +480,9 @@ class Board():
         '''
         Gets all the potential moves and valid moves
         Created to consider all pawn diagonal attacks that might lead to stalemates and checkmates
+
+        This is why even if there isn't a piece in the diagonal box, we consider it as a potential place
+        for a piece to be played
         '''
         moves = self.get_all_moves(color)
         # add potential diagonals (for pawns)
@@ -480,42 +490,42 @@ class Board():
             for x in range(8):
                 for y in range(8):
                     if (self.board[y][x] == "bP"):
-                        if (y != 7):
-                            if (x == 0):
-                                if ("b" not in self.board[y + 1][1]):
-                                    moves.append((x, y, 1, y + 1))
-                            elif (x == 7):
-                                if ("b" not in self.board[y + 1][6]):
-                                    moves.append((x, y, 6, y + 1))
-                            else:
-                                if ("b" not in self.board[y + 1][x + 1]):
-                                    moves.append((x, y, x + 1, y + 1))
-                                if ("b" not in self.board[y + 1][x - 1]):
-                                    moves.append((x, y, x - 1, y + 1))
+                        if (x == 0):
+                            if ("b" not in self.board[y + 1][1]):
+                                moves.append((x, y, 1, y + 1))
+                        elif (x == 7):
+                            if ("b" not in self.board[y + 1][6]):
+                                moves.append((x, y, 6, y + 1))
+                        else:
+                            if ("b" not in self.board[y + 1][x + 1]):
+                                moves.append((x, y, x + 1, y + 1))
+                            if ("b" not in self.board[y + 1][x - 1]):
+                                moves.append((x, y, x - 1, y + 1))
         else: # for white
             for x in range(8):
                 for y in range(8):
                     if (self.board[y][x] == "wP"):
-                        if (y != 0):
-                            if (x == 0):
-                                if ("w" not in self.board[y - 1][1]):
-                                    moves.append((x, y, 1, y - 1))
-                            elif (x == 7):
-                                if ("w" not in self.board[y - 1][6]):
-                                    moves.append((x, y, 6, y - 1))
-                            else:
-                                if ("w" not in self.board[y - 1][x + 1]):
-                                    moves.append((x, y, x + 1, y - 1))
-                                if ("w" not in self.board[y - 1][x - 1]):
-                                    moves.append((x, y, x - 1, y - 1))
+                        if (x == 0):
+                            if ("w" not in self.board[y - 1][1]):
+                                moves.append((x, y, 1, y - 1))
+                        elif (x == 7):
+                            if ("w" not in self.board[y - 1][6]):
+                                moves.append((x, y, 6, y - 1))
+                        else:
+                            if ("w" not in self.board[y - 1][x + 1]):
+                                moves.append((x, y, x + 1, y - 1))
+                            if ("w" not in self.board[y - 1][x - 1]):
+                                moves.append((x, y, x - 1, y - 1))
         return moves
 
     def get_pawn_moves(self, x, y, moves, color):
+        # Cannot use op because movement direction is completely different
         if (color == "b"): # AI move
             if (y == 1): # hasn't moved yet (can move 1 or 2 forward)
-                if (self.board[2][x] == "--"):
+                if (self.board[2][x] == "--" and self.board[3][x] != "--"):
                     moves.append((x, y, x, 2))
                 if (self.board[3][x] == "--" and self.board[2][x] == "--"):
+                    moves.append((x, y, x, 2))
                     moves.append((x, y, x, 3))
                 # diagonal attacks
                 if (x == 0):
@@ -548,10 +558,13 @@ class Board():
                         moves.append((x, y, x - 1, y + 1))
         else: # color is white
             if (y == 6): # hasn't moved yet (can move 1 or 2 forward)
-                if (self.board[5][x] == "--"):
+                # Can only move one forward
+                if (self.board[5][x] == "--" and self.board[4][x] != "--"):
                     moves.append((x, y, x, 5))
+                # Can move one and two forward
                 if (self.board[4][x] == "--"  and self.board[5][x] == "--"):
                     moves.append((x, y, x, 4))
+                    moves.append((x, y, x, 5))
                 # diagonal attacks
                 if (x == 0):
                     if ("b" in self.board[y - 1][1]):
@@ -630,6 +643,7 @@ class Board():
         for i in range(len(possible_combos)):
             n_x = possible_combos[i][0]
             n_y = possible_combos[i][1]
+            # Note: knight can jump over other pieces
             if (n_x >= 0 and n_x <= 7 and n_y >= 0 and n_y <= 7):
                 if (color not in self.board[n_y][n_x]):
                     moves.append((x, y, n_x, n_y))
@@ -639,6 +653,11 @@ class Board():
             op = "w"
         else:
             op = "b"
+        
+        # If we run into the opposing team color, we want to break out
+        # Because we cannot go in that direction any further
+        # That is why the 
+        
         # SE
         i = x + 1
         j = y + 1
@@ -701,31 +720,27 @@ class Board():
             j -= 1
 
     def get_king_moves(self, x, y, moves, color):
-        if (color == "b"):
-            op = "w"
-        else:
-            op = "b"
         if (x > 0):
-            if (op in self.board[y][x - 1] or self.board[y][x - 1] == "--"):
+            if (color not in self.board[y][x - 1]):
                 moves.append((x, y, x - 1, y))
             if (y > 0):
-                if (op in self.board[y - 1][x - 1] or self.board[y - 1][x - 1] == "--"):
+                if (color not in self.board[y - 1][x - 1]):
                     moves.append((x, y, x - 1, y - 1))
             if (y < 7):
-                if (op in self.board[y + 1][x - 1] or self.board[y + 1][x - 1] == "--"):
+                if (color not in self.board[y + 1][x - 1]):
                     moves.append((x, y, x - 1, y + 1))
         if (y > 0):
-            if (op in self.board[y - 1][x] or self.board[y - 1][x] == "--"):
+            if (color not in self.board[y - 1][x]):
                 moves.append((x, y, x, y - 1))
             if (x < 7):
-                if (op in self.board[y - 1][x + 1] or self.board[y - 1][x + 1] == "--"):
+                if (color not in self.board[y - 1][x + 1]):
                     moves.append((x, y, x + 1, y - 1))
         if (x < 7):
-            if (op in self.board[y][x + 1] or self.board[y][x + 1] == "--"):
+            if (color not in self.board[y][x + 1]):
                 moves.append((x, y, x + 1, y))
             if (y < 7):
-                if (op in self.board[y + 1][x + 1] or self.board[y + 1][x + 1] == "--"):
+                if (color not in self.board[y + 1][x + 1]):
                     moves.append((x, y, x + 1, y + 1))
         if (y < 7):
-            if (op in self.board[y + 1][x] or self.board[y + 1][x] == "--"):
+            if (color not in self.board[y + 1][x]):
                 moves.append((x, y, x, y + 1))

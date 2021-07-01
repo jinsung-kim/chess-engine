@@ -1,5 +1,5 @@
 import pygame
-import time
+# import time
 import math
 from engine import Board
 
@@ -7,6 +7,8 @@ DISPLAY_HEIGHT = 400
 DISPLAY_WIDTH = 400
 SQUARE_SIDE = 50
 """
+Depth Chart:
+
 1 for only defending 
 2 for defending and attacking possible trades
 3 recommended for competitive AI
@@ -26,6 +28,7 @@ BROWN = (160,82,45)
 game_display = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 game_board = Board()
 
+# Loading all of the images
 bB = pygame.image.load("assets/bB.png")
 bK = pygame.image.load("assets/bK.png")
 bN = pygame.image.load("assets/bN.png")
@@ -40,6 +43,7 @@ wP = pygame.image.load("assets/wP.png")
 wQ = pygame.image.load("assets/wQ.png")
 wR = pygame.image.load("assets/wR.png")
 
+# Corresponding each symbol to its rightful image
 image_dict = {
     "bB": bB,
     "bK": bK,
@@ -59,6 +63,7 @@ def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
 
 
+# Draws the game board
 def draw_square(pos_x, pos_y, color):
     if (color == BLACK): # If the board piece is black, king pos
         x = int(pos_x / 50)
@@ -74,6 +79,7 @@ def draw_square(pos_x, pos_y, color):
         pygame.Rect(pos_x, pos_y, SQUARE_SIDE, SQUARE_SIDE))
 
 
+# Draws the actual board itself
 def draw_board():
     game_display.fill(GRAY_DARK)
     for i in range(4):
@@ -82,6 +88,7 @@ def draw_board():
             draw_square((i * 100) + 50, (j * 100) + 50, WHITE)
 
 
+# Significant square clicked or some sort of game event
 def highlight_board(x, y):
     # Position on board
     pos_x = int(truncate(x / 50, 0))
@@ -91,7 +98,7 @@ def highlight_board(x, y):
 
     # Places that current piece can go
     # If the piece is empty or belongs to the black side, do nothing
-    possible_combos = []
+    # possible_combos = []
     piece = game_board.board[pos_y][pos_x]
     if (piece == "wN"): # Knight (L shaped)
         highlight_knight(pos_x, pos_y)
@@ -107,7 +114,7 @@ def highlight_board(x, y):
     elif (piece == "wP"): # Pawn
         highlight_pawn(pos_x, pos_y)
 
-    # highlights checks
+    # highlights checks after each move
     if (game_board.look_for_check("b")):
         pos = game_board.bK_pos
         draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
@@ -115,7 +122,7 @@ def highlight_board(x, y):
     if (game_board.look_for_check("w")):
         pos = game_board.wK_pos
         draw_square(pos[0] * 50, pos[1] * 50, RED_CHECK)
-        # game_board.wK_pos = (-1, -1)
+        # game_board.wK_pos = (-1, -1)n
 
 
 def highlight_knight(pos_x, pos_y):
@@ -127,28 +134,36 @@ def highlight_knight(pos_x, pos_y):
     for i in range(len(possible_combos)):
         curr_x = possible_combos[i][0]
         curr_y = possible_combos[i][1]
+        # In the board check
         if (curr_x >= 0 and curr_x <= 7 and curr_y >= 0 and curr_y <= 7):
+            # Will capture opponent piece
             if ("b" in game_board.board[curr_y][curr_x]):
                 draw_square(curr_x * 50, curr_y * 50, BLUE_LIGHT)
+            # Won't be stepping on any existing pieces
             elif ("w" not in game_board.board[curr_y][curr_x]):
                 draw_square(curr_x * 50, curr_y * 50, YELLOW)
 
 
 def highlight_rook(pos_x, pos_y):
+    # Positions to start iterating from into their respective corners
     up_count = pos_y - 1
     down_count = pos_y + 1
     left_count = pos_x - 1
     right_count = pos_x + 1
     for i in range(up_count, -1, -1):
+        # A piece that belongs to player's team
         if ("w" in game_board.board[i][pos_x]):
             break
         else:
             if ("b" in game_board.board[i][pos_x]):
                 draw_square(pos_x * 50, i * 50, BLUE_LIGHT)
+                # Cannot go any further
                 break
             else:
+                # Can go and keep going (empty space)
                 draw_square(pos_x * 50, i * 50, YELLOW)
     for i in range(down_count, 8):
+        # A piece that belongs to player's team
         if ("w" in game_board.board[i][pos_x]):
             break
         else:
@@ -158,6 +173,7 @@ def highlight_rook(pos_x, pos_y):
             else:
                 draw_square(pos_x * 50, i * 50, YELLOW)
     for i in range(left_count, -1, -1):
+        # A piece that belongs to player's team
         if ("w" in game_board.board[pos_y][i]):
             break
         else:
@@ -167,6 +183,7 @@ def highlight_rook(pos_x, pos_y):
             else:
                 draw_square(i * 50, pos_y * 50, YELLOW)
     for i in range(right_count, 8):
+        # A piece that belongs to player's team
         if ("w" in game_board.board[pos_y][i]):
             break
         else:
@@ -180,6 +197,7 @@ def highlight_rook(pos_x, pos_y):
 def highlight_bishop(pos_x, pos_y):
     i = pos_x - 1
     j = pos_y - 1
+    # Heading to the top left
     while (i >= 0 and j >= 0):
         if ("w" in game_board.board[j][i]):
             break
@@ -193,6 +211,7 @@ def highlight_bishop(pos_x, pos_y):
         j -= 1
     i = pos_x - 1
     j = pos_y + 1
+    # Heading to the bottom left
     while (i >= 0 and j <= 7):
         if ("w" in game_board.board[j][i]):
             break
@@ -206,6 +225,7 @@ def highlight_bishop(pos_x, pos_y):
         j += 1
     i = pos_x + 1
     j = pos_y - 1
+    # Heading to the top right
     while (i <= 7 and j >= 0):
         if ("w" in game_board.board[j][i]):
             break
@@ -219,6 +239,7 @@ def highlight_bishop(pos_x, pos_y):
         j -= 1
     i = pos_x + 1
     j = pos_y + 1
+    # Heading to the bottom right
     while (i <= 7 and j <= 7):
         if ("w" in game_board.board[j][i]):
             break
@@ -252,28 +273,27 @@ def highlight_king(pos_x, pos_y):
 
 
 def highlight_pawn(pos_x, pos_y):
-    if (pos_y == 6):
-        if ("b" not in game_board.board[pos_y - 1][pos_x] and \
-            "w" not in game_board.board[pos_y - 1][pos_x]):
+    if (pos_y == 6): # Haven't moved (forward yet) - can move two spaces
+        if (game_board.board[pos_y - 1][pos_x] == '--'):
             draw_square(pos_x * 50, (pos_y - 1) * 50, YELLOW)
-            if ("b" not in game_board.board[pos_y - 2][pos_x] and \
-            "w" not in game_board.board[pos_y - 2][pos_x]):
+            if (game_board.board[pos_y - 2][pos_x] == '--'): # Second space available too
                 draw_square(pos_x * 50, (pos_y - 2) * 50, YELLOW)
     else:
-        if ("b" not in game_board.board[pos_y - 1][pos_x] and \
-            "w" not in game_board.board[pos_y - 1][pos_x]):
+        # Can only move one step forward if move was already made
+        if (game_board.board[pos_y - 1][pos_x] == '--'):
             draw_square(pos_x * 50, (pos_y - 1) * 50, YELLOW)
 
     # Left and right possible attack highlights
-    if (pos_x == 0):
+    if (pos_x == 0): # Only right side diagonal attack available
         if ("w" not in game_board.board[pos_y - 1][pos_x + 1] and \
             "b" in game_board.board[pos_y - 1][pos_x + 1]):
             draw_square((pos_x + 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
-    elif (pos_x == 7):
+    elif (pos_x == 7): # Only left side diagonal attack available
         if ("w" not in game_board.board[pos_y - 1][pos_x - 1] and \
             "b" in game_board.board[pos_y - 1][pos_x - 1]):
             draw_square((pos_x - 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
     else:
+        # Both diagonal attacks available
         if ("w" not in game_board.board[pos_y - 1][pos_x - 1] and \
             "b" in game_board.board[pos_y - 1][pos_x - 1]):
             draw_square((pos_x - 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
@@ -281,6 +301,8 @@ def highlight_pawn(pos_x, pos_y):
             "b" in game_board.board[pos_y - 1][pos_x + 1]):
             draw_square((pos_x + 1) * 50, (pos_y - 1) * 50, BLUE_LIGHT)
 
+
+# Draws the current state of the board w.r.t. all of the pieces
 def draw_pieces():
     for x in range(8):
         for y in range(8):
@@ -298,16 +320,16 @@ def main():
     while not game_exit:
         # end game conditions
         if (game_board.look_for_stalemate("b")):
-            # game_exit = True
+            game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_stalemate("w")):
-            # game_exit = True
+            game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_checkmate("b")):
-            # game_exit = True
+            game_exit = True
             print("White wins")
         elif (game_board.look_for_checkmate("w")):
-            # game_exit = True
+            game_exit = True
             print("Black wins")
         
         for event in pygame.event.get():
@@ -323,19 +345,19 @@ def main():
 
         # end game conditions
         if (game_board.look_for_stalemate("b")):
-            # game_exit = True
+            game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_stalemate("w")):
-            # game_exit = True
+            game_exit = True
             print("Stalemate; draw")
         elif (game_board.look_for_checkmate("b")):
-            # game_exit = True
+            game_exit = True
             print("White wins")
         elif (game_board.look_for_checkmate("w")):
-            # game_exit = True
+            game_exit = True
             print("Black wins")
         
-        if (ai_move): # ai move here
+        if (ai_move): # ai move here if the user already made a valid move
             game_board.make_ai_move()
             ai_move = False
         
